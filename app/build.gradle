@@ -1,0 +1,31 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    compileSdkVersion 34 // Latest as of April 2023
+    // buildToolsVersion is not needed if you're using the Android Gradle Plugin 3.5.0 or higher
+
+    defaultConfig {
+        applicationId "org.pytorch.helloworld"
+        minSdkVersion 21 // Minimum should be kept in line with app requirements
+        targetSdkVersion 34 // Should be the same as compileSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    // Consider adding View Binding or Data Binding if you need them
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.4.1' // Update to the latest version
+    implementation 'org.pytorch:pytorch_android_lite:1.9.0'
+    implementation 'org.pytorch:pytorch_android_torchvision:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    // Make sure to check if these library versions exist on PyTorch's official website or Maven Central
+}
