@@ -12,12 +12,10 @@ import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.MemoryFormat
 import org.pytorch.Module
-import org.pytorch.Tensor
 import org.pytorch.torchvision.TensorImageUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageBitmap(bitmap)
 
         // preparing input tensor
-        val inputTensor: Tensor = TensorImageUtils.bitmapToFloat32Tensor(
+        val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
             bitmap,
             TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
             TensorImageUtils.TORCHVISION_NORM_STD_RGB,
@@ -50,10 +48,10 @@ class MainActivity : AppCompatActivity() {
         )
 
         // running the model
-        val outputTensor: Tensor = module?.forward(IValue.from(inputTensor))!!.toTensor()
+        val outputTensor = module!!.forward(IValue.from(inputTensor)).toTensor()
 
         // getting tensor content as java array of floats
-        val scores: FloatArray = outputTensor.getDataAsFloatArray()
+        val scores = outputTensor.dataAsFloatArray
 
         // searching for the index with maximum score
         var maxScore = -Float.MAX_VALUE
@@ -64,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                 maxScoreIdx = i
             }
         }
-        val className: String = ImageNetClasses.IMAGENET_CLASSES.get(maxScoreIdx)
+        val className = ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
 
         // showing className on UI
         val textView = findViewById<TextView>(R.id.text)

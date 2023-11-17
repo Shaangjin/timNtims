@@ -34,7 +34,7 @@ class MainActivity3 : AppCompatActivity() {
     private val JSON: MediaType = "application/json; charset=utf-8".toMediaType()
 
     companion object {
-        private const val MY_SECRET_KEY = "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"
+        private const val MY_SECRET_KEY = "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"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
