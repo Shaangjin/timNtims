@@ -40,7 +40,7 @@ class MainActivity2 : AppCompatActivity() {
 
         val buttonStartSubActivity: Button = findViewById(R.id.button)
         buttonStartSubActivity.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
         }
 

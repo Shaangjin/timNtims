@@ -25,8 +25,40 @@ class HomeActivity : AppCompatActivity(){
         setContentView(R.layout.activity_home)
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener { 
-            
+        bottomNavigationView.setOnItemSelectedListener {item ->
+            when(item.itemId) {
+                R.id.first -> {
+                    changeFragment(roomSetupFragment)
+                    true
+                }
+                R.id.second -> {
+                    changeFragment(roomListFragment)
+                    true
+                }
+                R.id.third -> {
+                    changeFragment(userProfileFragment)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        bottomNavigationView.setOnItemReselectedListener {item ->
+            when(item.itemId) {
+                R.id.first -> {
+                    changeFragment(roomSetupFragment)
+                    true
+                }
+                R.id.second -> {
+                    changeFragment(roomListFragment)
+                    true
+                }
+                R.id.third -> {
+                    changeFragment(userProfileFragment)
+                    true
+                }
+                else -> false
+            }
         }
 
         var fManager = supportFragmentManager
@@ -35,22 +67,6 @@ class HomeActivity : AppCompatActivity(){
         transaction.add(R.id.fragment_container_view, roomListFragment)
 
         transaction.commit()
-    }
-    private fun NavigationBarView.setOnItemSelectedListener(function: (item: MenuItem) -> Unit) {
-            when(it.itemId) {
-                TODO("make button") -> {
-
-                    changeFragment(roomSetupFragment)
-                }
-                R.id.second -> {
-                    changeFragment(RoomListFragment)
-                }
-                R.id.third -> {
-                    changeFragment(UserProfileFragment)
-                }
-            }
-            true
-        selectedItemId = R.id.first
     }
 
     private fun changeFragment(fragment: Fragment) {
