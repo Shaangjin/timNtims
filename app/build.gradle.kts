@@ -9,6 +9,7 @@ android {
     namespace = "seoultech.itm.timntims"
     compileSdk = 34
 
+
     defaultConfig {
         applicationId = "seoultech.itm.timntims"
         minSdk = 29
@@ -17,6 +18,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIE")
     }
 
     buildTypes {
@@ -28,6 +33,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -35,7 +41,14 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/DEPENDENCIES"
+        }
+    }
 }
+
 
 dependencies {
 
@@ -67,4 +80,10 @@ dependencies {
     // Add the dependency for the Realtime Database library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-database-ktx")
+
+    //google calendar
+    implementation ("com.google.api-client:google-api-client:2.0.0")
+    implementation ("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
+    implementation ("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
+
 }
