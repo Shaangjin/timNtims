@@ -25,6 +25,10 @@ class SignInActivity : AppCompatActivity() {
 
         auth = Firebase.auth
 
+        if (auth.currentUser != null) { // 자동 로그인: 이미 로그인한 사용자가 있으면 HomeActivity로 이동
+            moveHomeActivity()
+        }
+
         emailLoginBtn  = findViewById(R.id.emailLoginBtn)
         emailEdit = findViewById(R.id.emailEdit)
         pwdEdit = findViewById(R.id.pwdEdit)
@@ -42,11 +46,10 @@ class SignInActivity : AppCompatActivity() {
         }
     }
 
-    private fun moveHomePage(user: FirebaseUser?) {
-        if(user != null) {
-            startActivity(Intent(this, HomeActivity::class.java))
-            finish()
-        }
+    private fun moveHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun signIn(email: String, password: String) {
@@ -57,7 +60,7 @@ class SignInActivity : AppCompatActivity() {
             .addOnCompleteListener { task ->
                 if(task.isSuccessful) {
                     Toast.makeText(this,"Sign In!",Toast.LENGTH_SHORT).show()
-                    moveHomePage(task.result?.user)
+                    moveHomeActivity()
                 } else {
                     Toast.makeText(this,"Please check your email or password.",Toast.LENGTH_SHORT).show()
                 }
