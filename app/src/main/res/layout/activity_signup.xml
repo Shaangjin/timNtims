@@ -20,35 +20,37 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/pwdEdit1">
+            app:layout_constraintBottom_toTopOf="@id/pwdEdit1"
+            app:layout_constraintTop_toTopOf="parent">
 
             <EditText
                 android:id="@+id/emailEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
                 android:hint="Email"
                 android:minWidth="48dp"
                 android:minHeight="48dp" />
 
             <TextView
-                android:id="@+id/textView"
+                android:id="@+id/emailText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Please Enter your Email." />
+                android:text="Enter your Email" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/pwdEdit1"
-            app:layout_constraintBottom_toTopOf="@id/pwdEdit2">
+            app:layout_constraintBottom_toTopOf="@id/pwdEdit2"
+            app:layout_constraintTop_toBottomOf="@id/pwdEdit1">
 
             <EditText
                 android:id="@+id/pwdEdit1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
+                android:inputType="textPassword"
                 android:minWidth="48dp"
                 android:minHeight="48dp" />
 
@@ -70,6 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Password"
+                android:inputType="textPassword"
                 android:minWidth="48dp"
                 android:minHeight="48dp" />
 
@@ -78,13 +81,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Confirm your password." />
+                android:text="Confirm your password" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/SignUpBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:alpha="0.3"
             android:minWidth="48dp"
             android:minHeight="48dp"
             android:text="Sign Up" />

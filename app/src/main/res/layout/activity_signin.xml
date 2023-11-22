@@ -39,6 +39,7 @@
                 android:id="@+id/emailEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
                 android:hint="Email" />
@@ -52,6 +53,7 @@
                 android:id="@+id/pwdEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="textPassword"
                 android:minWidth="48dp"
                 android:minHeight="48dp"
                 android:hint="Password" />

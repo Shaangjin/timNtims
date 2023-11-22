@@ -50,6 +50,9 @@ class SignInActivity : AppCompatActivity() {
     }
 
     private fun signIn(email: String, password: String) {
+        if(email.isNullOrEmpty() || password.isNullOrEmpty()) {
+            Toast.makeText(this, "Please write Email or Password.", Toast.LENGTH_SHORT).show()
+        } else {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if(task.isSuccessful) {
@@ -59,6 +62,7 @@ class SignInActivity : AppCompatActivity() {
                     Toast.makeText(this,"Please check your email or password.",Toast.LENGTH_SHORT).show()
                 }
             }
+        }
     }
 }
 
