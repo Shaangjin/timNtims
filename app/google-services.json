@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "169422410057",
+    "project_id": "mpproject-cb773",
+    "storage_bucket": "mpproject-cb773.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169422410057:android:abb989d3092756c2300a98",
+        "android_client_info": {
+          "package_name": "seoultech.itm.timntims"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBicYXiqZpkhin2DxbcDdrDvHDXLSMwFbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
