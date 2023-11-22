@@ -14,20 +14,12 @@ import seoultech.itm.timntims.model.Message;
 
 import java.util.List;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
+public class MessageAdapterNormal extends RecyclerView.Adapter<MessageAdapterNormal.ViewHolder> {
 
     List<Message> messageList;
 
-    public interface OnItemClickListener {
-        void onItemClick(Message message);
-    }
-
-    private OnItemClickListener listener;
-
-    // Constructor with listener
-    public MessageAdapter(List<Message> messageList, OnItemClickListener listener) {
+    public MessageAdapterNormal(List<Message> messageList) {
         this.messageList = messageList;
-        this.listener = listener;
     }
 
     @NonNull
@@ -41,8 +33,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Message message = messageList.get(position);
-        holder.bind(message, listener);
-
         if(message.getSentBy().equals(Message.SENT_BY_ME)){
             holder.left_chat_view.setVisibility(View.GONE);
             holder.right_chat_view.setVisibility(View.VISIBLE);
@@ -70,15 +60,5 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             left_chat_tv = itemView.findViewById(R.id.left_chat_tv);
             right_chat_tv = itemView.findViewById(R.id.right_chat_tv);
         }
-        public void bind(final Message message, final OnItemClickListener listener) {
-            if (listener != null) {
-                itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        listener.onItemClick(message);
-                    }
-                });
-            }
     }
-}
 }
