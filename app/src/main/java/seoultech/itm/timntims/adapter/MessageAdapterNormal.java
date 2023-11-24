@@ -17,6 +17,7 @@ import seoultech.itm.timntims.model.Message;
 public class MessageAdapterNormal extends RecyclerView.Adapter<MessageAdapterNormal.ViewHolder> {
 
     List<Message> messageList;
+    //LIst<Image?>
 
     public MessageAdapterNormal(List<Message> messageList) {
         this.messageList = messageList;
@@ -25,6 +26,8 @@ public class MessageAdapterNormal extends RecyclerView.Adapter<MessageAdapterNor
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        //layout과 연결되는 부분
+        //image list 따로 필요?
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item, null);
         ViewHolder holder = new ViewHolder(view);
         return holder;
