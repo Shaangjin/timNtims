@@ -1,57 +1,43 @@
 package seoultech.itm.timntims
 
+
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.Response
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import seoultech.itm.timntims.adapter.MessageAdapter
-import seoultech.itm.timntims.model.Message
-import java.io.IOException
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import android.widget.Toast
 
 import androidx.activity.result.contract.ActivityResultContracts
-
-import kotlinx.coroutines.GlobalScope
-
-
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import okio.FileSystem
-import okio.Path.Companion.toPath
-import seoultech.itm.timntims.adapter.MessageAdapterNormal
-
-import seoultech.itm.timntims.databinding.ActivityMain3Binding // Use the correct import for your generated binding class
-import kotlin.time.Duration.Companion.seconds
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import opennlp.tools.namefind.NameFinderME
+import opennlp.tools.namefind.TokenNameFinderModel
+import opennlp.tools.tokenize.SimpleTokenizer
+import org.pytorch.IValue
+import org.pytorch.LiteModuleLoader
+import org.pytorch.MemoryFormat
+import org.pytorch.Module
+import org.pytorch.torchvision.TensorImageUtils
+import seoultech.itm.timntims.adapter.ChatAdapter
+import seoultech.itm.timntims.databinding.ActivityMain3Binding
+import seoultech.itm.timntims.model.ChatItem
+import seoultech.itm.timntims.model.ImageItem
+import seoultech.itm.timntims.model.MessageItem
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 class MainActivity3 : AppCompatActivity() {
     private lateinit var binding: ActivityMain3Binding
-    private val messageList = mutableListOf<Message>() // Non-nullable list
+    private val messageList = mutableListOf<ChatItem>() // Non-nullable list
 
     //GPT 톡방 연결을 위한 변수
     private val REQUEST_CODE = 1
     private lateinit var textSummarizer: TextSummarizer
-    private lateinit var organizationNameFinder: OrganizationNameFinder
 
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -71,38 +57,97 @@ class MainActivity3 : AppCompatActivity() {
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        //TextSum
         textSummarizer = TextSummarizer(this)
+
+
 
 
         // Setup RecyclerView
         binding.recyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(this@MainActivity3).apply { stackFromEnd = true }
-            adapter = MessageAdapterNormal(messageList)
+            adapter = ChatAdapter(this@MainActivity3, messageList)
         }
         val message = intent.getStringExtra("message_key")
         message?.let {
             addResponse(it) // Add the received message to the chat
         }
 
-
+        //Intent
         binding.btnsendgpt.setOnClickListener {
             // Create the intent to start MainActivity4
             val intent = Intent(this, MainActivity4::class.java)
             // Start MainActivity4 and expect a result back
             startForResult.launch(intent)
         }
+
         // Send button click listener
         binding.btnsend.setOnClickListener {
             val SendMessage = binding.etMsg.text.toString().trim()
             if (SendMessage.isNotEmpty()) {
-                addToChat(SendMessage, Message.SENT_BY_ME)
+
+                //Image Upload
+                //일단 임시적으로 아래 코드 사용
+                if(SendMessage == "image.jpg"){
+                    addToChat(SendMessage, ChatItem.TYPE_IMAGE_SENT)
+
+                    //val resultClass = deepLearning.inference(SendMessage)
+                    //showResultToast(resultClass)
+
+                }
+                //Summarize Function
+                else if(SendMessage =="summarize"){
+                        summarizeGptResponse()
+
+                }
+                /*else if(SendMessage.split(":")[0] =="organization") {
+
+                        // Load the organization name finder model
+                    val nameFinderModel: TokenNameFinderModel // Declare the variable in an accessible scope
+
+                    try {
+                        // Load the organization name finder model
+                        this.assets.open("en-ner-organization.bin").use { modelIn ->
+                            nameFinderModel = TokenNameFinderModel(modelIn)
+                        }
+
+                        val nameFinder = NameFinderME(nameFinderModel)
+
+                        val tokenizer = SimpleTokenizer.INSTANCE
+                        val tokens = tokenizer.tokenize(SendMessage)
+
+                        // Find names within the tokenized text
+                        val nameSpans = nameFinder.find(tokens)
+
+                        // Extract and return the organization names found in the text
+                        val names = nameSpans.map { span -> tokens.slice(span.getStart()..span.getEnd() - 1).joinToString(" ") }.toTypedArray()
+
+                        // Do something with the extracted names
+                        // For example, you could join them into a string and show a toast or update the UI
+                        val namesString = names.joinToString(", ")
+                        //addResponse(namesString)
+
+                    } catch (e: IOException) {
+                        // Handle the exception
+                        Log.e("MainActivity", "Error loading the name finder model", e)
+                    }
+
+                }
+                */
+
+                else{
+                    addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
+                }
+
+
                 binding.etMsg.text.clear()
 
-                if(SendMessage =="summarize"){
-                    summarizeGptResponse()
-                }
+                //val ChatItem.TYPE_MESSAGE_SENT = 0
+                //val ChatItem.TYPE_MESSAGE_RECEIVED = 1
+                //val ChatItem.TYPE_IMAGE_SENT = 2
+                //val ChatItem.TYPE_IMAGE_RECEIVED = 3
+
                 //GPT API
                 //Maybe FireBase?
                 //GPT API
@@ -112,31 +157,93 @@ class MainActivity3 : AppCompatActivity() {
         }
     }
 
+    private fun showResultToast(result: String) {
+        Toast.makeText(this, result, Toast.LENGTH_SHORT).show()
+    }
 
     private fun summarizeGptResponse(){
         var summarizedGptResponse = ""
         messageList.forEach{
-            if(it.sentBy == Message.SENT_BY_BOT){
-                summarizedGptResponse =  summarizedGptResponse +it.message
+            if(it.getType() == ChatItem.TYPE_MESSAGE_RECEIVED ){
+                var obj =  it as MessageItem
+                summarizedGptResponse =  summarizedGptResponse +it.getMessage()
             }
         }
         val summary = textSummarizer.summarize(summarizedGptResponse, 3)
         addResponse(summary)
 
     }
-    private fun addToChat(message: String, sentBy: String) {
+    private fun addToChat(message: String, sentBy: Int) {
         // Add to chat and update UI on the main thread
         runOnUiThread {
-            messageList.add(Message(message, sentBy))
+
+            if(sentBy ==ChatItem.TYPE_MESSAGE_SENT){
+                messageList.add(MessageItem(message, sentBy))
+
+            }else if(sentBy ==ChatItem.TYPE_MESSAGE_RECEIVED){
+                messageList.add(MessageItem(message, sentBy))
+
+            }else if(sentBy ==ChatItem.TYPE_IMAGE_SENT){
+                messageList.add(ImageItem(message, sentBy))
+
+
+                //Deep learning Image Classification
+                imageClassification(message)
+
+
+            }
+            else{
+                messageList.add(ImageItem(message, sentBy))
+                imageClassification(message)
+            }
+
             binding.recyclerView.adapter?.notifyDataSetChanged()
             binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
         }
     }
+    private fun imageClassification(message:String){
+        var bitmap: Bitmap? = null
+        var module: Module? = null
+        try {
+            // creating bitmap from packaged into app android asset 'image.jpg',
+            // app/src/main/assets/image.jpg
+            bitmap = BitmapFactory.decodeStream(assets.open(message))
+            // loading serialized torchscript module from packaged into app android asset model.pt,
+            // app/src/model/assets/model.pt
+            module = LiteModuleLoader.load(MainActivity.assetFilePath(this, "model.pt"))
+        } catch (e: IOException) {
+            Log.e("PytorchHelloWorld", "Error reading assets", e)
+            finish()
+        }
 
+        val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
+            bitmap,
+            TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+            TensorImageUtils.TORCHVISION_NORM_STD_RGB,
+            MemoryFormat.CHANNELS_LAST
+        )
+
+        val outputTensor = module!!.forward(IValue.from(inputTensor)).toTensor()
+
+        // getting tensor content as java array of floats
+        val scores = outputTensor.dataAsFloatArray
+
+        // searching for the index with maximum score
+        var maxScore = -Float.MAX_VALUE
+        var maxScoreIdx = -1
+        for (i in scores.indices) {
+            if (scores[i] > maxScore) {
+                maxScore = scores[i]
+                maxScoreIdx = i
+            }
+        }
+        val className = ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
+        showResultToast(className)
+    }
     private fun addResponse(response: String) {
         // Add response to chat from gpt response
         //messageList.removeAt(messageList.size - 1) // Remove the loading message
-        addToChat(response, Message.SENT_BY_BOT)
+        addToChat(response, ChatItem.TYPE_MESSAGE_RECEIVED)
     }
 
 
@@ -153,6 +260,34 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
     }
-
+    companion object {
+        /**
+         * Copies specified asset to the file in /files app directory and returns this file absolute path.
+         *
+         * @return absolute file path
+         */
+        @Throws(IOException::class)
+        fun assetFilePath(context: Context, assetName: String?): String {
+            val file = File(context.filesDir, assetName)
+            if (file.exists() && file.length() > 0) {
+                return file.absolutePath
+            }
+            context.assets.open(assetName!!).use { `is` ->
+                FileOutputStream(file).use { os ->
+                    val buffer = ByteArray(4 * 1024)
+                    var read: Int
+                    while (`is`.read(buffer).also { read = it } != -1) {
+                        os.write(buffer, 0, read)
+                    }
+                    os.flush()
+                }
+                return file.absolutePath
+            }
+        }
+    }
 
 }
+
+
+
+
