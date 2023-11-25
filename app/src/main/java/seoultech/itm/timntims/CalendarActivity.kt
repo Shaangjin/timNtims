@@ -3,17 +3,21 @@ package seoultech.itm.timntims
 
 import android.Manifest
 import android.accounts.AccountManager
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.AsyncTask
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.text.TextUtils
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.CalendarView
+import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.ConnectionResult
@@ -36,8 +40,17 @@ import pub.devrel.easypermissions.EasyPermissions
 
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Arrays
+import java.util.Date
 import java.util.Locale
+
+
+import org.joda.time.DateTimeZone
+import seoultech.itm.timntims.databinding.ActivityCalendarBinding
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.text.DecimalFormat
 
 
 class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbacks {
@@ -48,6 +61,8 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
      * Google Calendar API에 접근하기 위해 사용되는 구글 캘린더 API 서비스 객체
      */
     private var mService: Calendar? = null
+
+    val binding by lazy  {ActivityCalendarBinding.inflate(layoutInflater)}
 
     /**
      * Google Calendar API 호출 관련 메커니즘 및 AsyncTask을 재사용하기 위해 사용
@@ -60,22 +75,73 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
     private var mAddEventButton: Button? = null
     private var mAddCalendarButton: Button? = null
     var mProgress: ProgressDialog? = null
+
+
+    var userID: String = "userID"
+    lateinit var fname: String
+    lateinit var str: String
+    lateinit var calendarView: CalendarView
+    lateinit var updateBtn: Button
+    lateinit var deleteBtn:Button
+    lateinit var saveBtn:Button
+    lateinit var diaryTextView: TextView
+    lateinit var diaryContent:TextView
+    lateinit var title:TextView
+    lateinit var contextEditText: EditText
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_calendar)
-        mAddCalendarButton = findViewById<View>(R.id.button_main_add_calendar) as Button
-        mAddEventButton = findViewById<View>(R.id.button_main_add_event) as Button
-        mGetEventButton = findViewById<View>(R.id.button_main_get_event) as Button
-        mStatusText = findViewById<View>(R.id.textview_main_status) as TextView
-        mResultText = findViewById<View>(R.id.textview_main_result) as TextView
-        /**
-         * 버튼 클릭으로 동작 테스트
-         */
+        setContentView(binding.root)
+
+        // UI값 생성
+        calendarView=binding.calendarView
+        diaryTextView=binding.diaryTextView
+        saveBtn=binding.saveBtn
+        deleteBtn=binding.deleteBtn
+        updateBtn=binding.updateBtn
+        diaryContent=binding.diaryContent
+        title=binding.title
+        contextEditText=binding.contextEditText
+        title.text = "Team Calendar"
+
+
+        mAddCalendarButton = binding.buttonMainAddCalendar
+        mAddEventButton = binding.buttonMainAddEvent
+        mGetEventButton = binding.buttonMainGetEvent
+        mStatusText = binding.textviewMainStatus
+        mResultText = binding.textviewMainResult
+
+        calendarView.setOnDateChangeListener { view, year, month, dayOfMonth ->
+            diaryTextView.visibility = View.VISIBLE
+            saveBtn.visibility = View.VISIBLE
+            contextEditText.visibility = View.VISIBLE
+            diaryContent.visibility = View.INVISIBLE
+            updateBtn.visibility = View.INVISIBLE
+            deleteBtn.visibility = View.INVISIBLE
+            diaryTextView.text = String.format("%d / %d / %d", year, month + 1, dayOfMonth)
+            contextEditText.setText("")
+            checkDay(year, month, dayOfMonth, userID)
+        }
+
+        saveBtn.setOnClickListener {
+            saveDiary(fname)
+            contextEditText.visibility = View.INVISIBLE
+            saveBtn.visibility = View.INVISIBLE
+            updateBtn.visibility = View.VISIBLE
+            deleteBtn.visibility = View.VISIBLE
+            str = contextEditText.text.toString()
+            diaryContent.text = str
+            diaryContent.visibility = View.VISIBLE
+        }
+
+
         mAddCalendarButton!!.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View) {
                 mAddCalendarButton!!.isEnabled = false
                 mStatusText!!.text = ""
                 mID = 1 //캘린더 생성
+
                 resultsFromApi
                 mAddCalendarButton!!.isEnabled = true
             }
@@ -326,6 +392,8 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
         return id
     }
 
+
+
     /*
     * 비동기적으로 Google Calendar API 호출
     */
@@ -355,10 +423,10 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
         /*
         * 백그라운드에서 Google Calendar API 호출 처리
         */
-        protected override fun doInBackground(vararg params: Void?): String? {
+        override fun doInBackground(vararg params: Void?): String? {
             try {
                 if (mID == 1) {
-                    return createCalendar()
+                    return createCalendar(binding.editextAddCalendar.text.toString())
                 } else if (mID == 2) {
                     return addEvent()
                 } else if (mID == 3) {
@@ -374,24 +442,30 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
 
         @get:Throws(IOException::class)
         private val event: String
+
             /*
                          * CalendarTitle 이름의 캘린더에서 10개의 이벤트를 가져와 리턴
-                         */ private get() {
+                         */  private get() {
                 val now = DateTime(System.currentTimeMillis())
-                val calendarID = getCalendarID("CalendarTitle") ?: return "캘린더를 먼저 생성하세요."
+                val calendarID = getCalendarID("English Premier League") ?: return "캘린더를 먼저 생성하세요."
                 val events = mService!!.events().list(calendarID) //"primary")
-                    .setMaxResults(10) //.setTimeMin(now)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
+//                    .setMaxResults(50) //.setTimeMin(now)
+//                    .setOrderBy("startTime")
+                    .setOrderBy("updated")
+//                    .setSingleEvents(true)
                     .execute()
                 val items = events.items
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA)
+                val nowDateTime = DateTime(Date())
                 for (event in items) {
+                    var startDate = event.start.date
                     var start = event.start.dateTime
                     if (start == null) {
 
                         // 모든 이벤트가 시작 시간을 갖고 있지는 않다. 그런 경우 시작 날짜만 사용
                         start = event.start.date
                     }
+                    if(start.toString().contains("2023"))
                     eventStrings.add(String.format("%s \n (%s)", event.summary, start))
                 }
                 return eventStrings.size.toString() + "개의 데이터를 가져왔습니다."
@@ -401,8 +475,8 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
         * 선택되어 있는 Google 계정에 새 캘린더를 추가한다.
         */
         @Throws(IOException::class)
-        private fun createCalendar(): String {
-            val ids = getCalendarID("CalendarTitle")
+        private fun createCalendar(id: String): String {
+            val ids = getCalendarID(id)
             if (ids != null) {
                 return "이미 캘린더가 생성되어 있습니다. "
             }
@@ -411,7 +485,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
             val calendar = com.google.api.services.calendar.model.Calendar()
 
             // 캘린더의 제목 설정
-            calendar.summary = "CalendarTitle"
+            calendar.summary = id
 
 
             // 캘린더의 시간대 설정
@@ -437,7 +511,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                 .execute()
 
             // 새로 추가한 캘린더의 ID를 리턴
-            return "캘린더가 생성되었습니다."
+            return "${calendar.summary} 캘린더가 생성되었습니다."
         }
 
         override fun onPostExecute(output: String?) {
@@ -512,6 +586,87 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
             return "created : " + event.htmlLink
         }
     }
+
+
+    // 달력 내용 조회, 수정
+    fun checkDay(cYear: Int, cMonth: Int, cDay: Int, userID: String) {
+        //저장할 파일 이름설정
+        fname = "" + userID + cYear + "-" + (cMonth + 1) + "" + "-" + cDay + ".txt"
+
+        var fileInputStream: FileInputStream
+        try {
+            fileInputStream = openFileInput(fname)
+            val fileData = ByteArray(fileInputStream.available())
+            fileInputStream.read(fileData)
+            fileInputStream.close()
+            str = String(fileData)
+            contextEditText.visibility = View.INVISIBLE
+            diaryContent.visibility = View.VISIBLE
+            diaryContent.text = str
+            saveBtn.visibility = View.INVISIBLE
+            updateBtn.visibility = View.VISIBLE
+            deleteBtn.visibility = View.VISIBLE
+            updateBtn.setOnClickListener {
+                contextEditText.visibility = View.VISIBLE
+                diaryContent.visibility = View.INVISIBLE
+                contextEditText.setText(str)
+                saveBtn.visibility = View.VISIBLE
+                updateBtn.visibility = View.INVISIBLE
+                deleteBtn.visibility = View.INVISIBLE
+                diaryContent.text = contextEditText.text
+            }
+            deleteBtn.setOnClickListener {
+                diaryContent.visibility = View.INVISIBLE
+                updateBtn.visibility = View.INVISIBLE
+                deleteBtn.visibility = View.INVISIBLE
+                contextEditText.setText("")
+                contextEditText.visibility = View.VISIBLE
+                saveBtn.visibility = View.VISIBLE
+                removeDiary(fname)
+            }
+            if (diaryContent.text == null) {
+                diaryContent.visibility = View.INVISIBLE
+                updateBtn.visibility = View.INVISIBLE
+                deleteBtn.visibility = View.INVISIBLE
+                diaryTextView.visibility = View.VISIBLE
+                saveBtn.visibility = View.VISIBLE
+                contextEditText.visibility = View.VISIBLE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+    // 달력 내용 제거
+    @SuppressLint("WrongConstant")
+    fun removeDiary(readDay: String?) {
+        var fileOutputStream: FileOutputStream
+        try {
+            fileOutputStream = openFileOutput(readDay, MODE_NO_LOCALIZED_COLLATORS)
+            val content = ""
+            fileOutputStream.write(content.toByteArray())
+            fileOutputStream.close()
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+    // 달력 내용 추가
+    @SuppressLint("WrongConstant")
+    fun saveDiary(readDay: String?) {
+        var fileOutputStream: FileOutputStream
+        try {
+            fileOutputStream = openFileOutput(readDay, MODE_NO_LOCALIZED_COLLATORS)
+            val content = contextEditText.text.toString()
+            fileOutputStream.write(content.toByteArray())
+            fileOutputStream.close()
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+    }
+
 
     companion object {
         const val REQUEST_ACCOUNT_PICKER = 1000
