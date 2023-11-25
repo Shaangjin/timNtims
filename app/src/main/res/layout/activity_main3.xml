@@ -41,13 +41,13 @@
                 android:layout_centerInParent="true"
                 android:hint="Write here"
                 android:padding="16dp"
-                android:layout_toLeftOf="@+id/btn_send"
+                android:layout_toLeftOf="@+id/btnsend"
                 android:background="@drawable/rounded_corner"/>
 
             <ImageButton
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:id="@+id/btn_send"
+                android:id="@+id/btnsend"
                 android:layout_alignParentEnd="true"
                 android:layout_centerInParent="true"
                 android:layout_marginStart="10dp"

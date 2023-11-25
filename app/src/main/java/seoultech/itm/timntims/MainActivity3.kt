@@ -28,6 +28,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 import androidx.activity.result.contract.ActivityResultContracts
+
 import kotlinx.coroutines.GlobalScope
 
 
@@ -49,6 +50,8 @@ class MainActivity3 : AppCompatActivity() {
 
     //GPT 톡방 연결을 위한 변수
     private val REQUEST_CODE = 1
+    private lateinit var textSummarizer: TextSummarizer
+    private lateinit var organizationNameFinder: OrganizationNameFinder
 
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -67,6 +70,10 @@ class MainActivity3 : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        textSummarizer = TextSummarizer(this)
+
 
         // Setup RecyclerView
         binding.recyclerView.apply {
@@ -87,12 +94,15 @@ class MainActivity3 : AppCompatActivity() {
             startForResult.launch(intent)
         }
         // Send button click listener
-        binding.btnSend.setOnClickListener {
+        binding.btnsend.setOnClickListener {
             val SendMessage = binding.etMsg.text.toString().trim()
             if (SendMessage.isNotEmpty()) {
                 addToChat(SendMessage, Message.SENT_BY_ME)
                 binding.etMsg.text.clear()
 
+                if(SendMessage =="summarize"){
+                    summarizeGptResponse()
+                }
                 //GPT API
                 //Maybe FireBase?
                 //GPT API
@@ -103,7 +113,17 @@ class MainActivity3 : AppCompatActivity() {
     }
 
 
+    private fun summarizeGptResponse(){
+        var summarizedGptResponse = ""
+        messageList.forEach{
+            if(it.sentBy == Message.SENT_BY_BOT){
+                summarizedGptResponse =  summarizedGptResponse +it.message
+            }
+        }
+        val summary = textSummarizer.summarize(summarizedGptResponse, 3)
+        addResponse(summary)
 
+    }
     private fun addToChat(message: String, sentBy: String) {
         // Add to chat and update UI on the main thread
         runOnUiThread {
