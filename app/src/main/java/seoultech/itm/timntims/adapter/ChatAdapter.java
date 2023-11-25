@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import seoultech.itm.timntims.ImageClassification;
 import seoultech.itm.timntims.R;
 import seoultech.itm.timntims.model.ChatItem;
 import seoultech.itm.timntims.model.ImageItem;
