@@ -5,14 +5,14 @@
         android:id="@+id/first"
         app:showAsAction="ifRoom"
         android:enabled="true"
-        android:title="첫번째" />
+        android:title="setup" />
     <item
         android:id="@+id/second"
         app:showAsAction="ifRoom"
-        android:title="두번째" />
+        android:title="list" />
     <item
         android:id="@+id/third"
         app:showAsAction="ifRoom"
         android:enabled="true"
-        android:title="세번째" />
+        android:title="profile" />
 </menu>

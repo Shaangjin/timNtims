@@ -39,10 +39,8 @@ class SignInActivity : AppCompatActivity() {
         }
 
         signUpBtn.setOnClickListener {
-            Log.d("ITM", "signupclick")
             val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
-            Log.d("ITM", "after")
         }
     }
 

@@ -1,10 +1,13 @@
 package seoultech.itm.timntims
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,12 +24,16 @@ class RoomListFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
+    private lateinit var tmpChatRoomBtn: Button //temporary button for chatting room
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+
     }
 
     override fun onCreateView(
@@ -34,8 +41,18 @@ class RoomListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_room_list, container, false)
+
+        val v = inflater.inflate(R.layout.fragment_room_list, container, false)
+        tmpChatRoomBtn = v.findViewById(R.id.tmpChatRoom)
+
+        tmpChatRoomBtn.setOnClickListener {
+            val intent = Intent(requireContext(), MainActivity3::class.java)
+            startActivity(intent)
+        }
+
+        return v
     }
+
 
     companion object {
         /**
