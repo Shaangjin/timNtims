@@ -71,14 +71,14 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="Add Calendar"
+        android:text="Export Calendar"
         />
 
     <EditText
         android:paddingLeft="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/editext_add_calendar"
+        android:id="@+id/editext_export"
         android:hint="Calendar name"
         android:layout_weight="2"/>
 
@@ -94,14 +94,26 @@
         android:layout_centerVertical="true"
         android:text="Add Event" />
 
-
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
     <Button
         android:id="@+id/button_main_get_event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="Get Event" />
+        android:text="Import Cal Event" />
+
+
+    <EditText
+        android:paddingLeft="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editext_import"
+        android:hint="Calendar name"
+        android:layout_weight="2"/>
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"

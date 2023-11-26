@@ -426,7 +426,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
         override fun doInBackground(vararg params: Void?): String? {
             try {
                 if (mID == 1) {
-                    return createCalendar(binding.editextAddCalendar.text.toString())
+                    return createCalendar(binding.editextExport.text.toString())
                 } else if (mID == 2) {
                     return addEvent()
                 } else if (mID == 3) {
@@ -447,7 +447,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                          * CalendarTitle 이름의 캘린더에서 10개의 이벤트를 가져와 리턴
                          */  private get() {
                 val now = DateTime(System.currentTimeMillis())
-                val calendarID = getCalendarID("English Premier League") ?: return "캘린더를 먼저 생성하세요."
+                val calendarID = getCalendarID(binding.editextImport.text.toString()) ?: return "캘린더를 먼저 생성하세요."
                 val events = mService!!.events().list(calendarID) //"primary")
 //                    .setMaxResults(50) //.setTimeMin(now)
 //                    .setOrderBy("startTime")
