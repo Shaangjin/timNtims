@@ -82,6 +82,13 @@ class MainActivity3 : AppCompatActivity() {
             startForResult.launch(intent)
         }
 
+        binding.btnsendcalendar.setOnClickListener {
+            // Create the intent to start MainActivity4
+            val intent = Intent(this, CalendarActivity::class.java)
+            // Start MainActivity4 and expect a result back
+            startForResult.launch(intent)
+        }
+
         // Send button click listener
         binding.btnsend.setOnClickListener {
             val SendMessage = binding.etMsg.text.toString().trim()

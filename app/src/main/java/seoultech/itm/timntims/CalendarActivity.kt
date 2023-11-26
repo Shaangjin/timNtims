@@ -112,6 +112,13 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
         mStatusText = binding.textviewMainStatus
         mResultText = binding.textviewMainResult
 
+        binding.btnsendcalendar.setOnClickListener {
+            // Create the intent to start MainActivity4
+            val intent = Intent(this, MainActivity4::class.java)
+            // Start MainActivity4 and expect a result back
+            startActivity(intent)
+        }
+
         calendarView.setOnDateChangeListener { view, year, month, dayOfMonth ->
             diaryTextView.visibility = View.VISIBLE
             saveBtn.visibility = View.VISIBLE

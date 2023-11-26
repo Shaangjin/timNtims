@@ -18,6 +18,17 @@
     android:orientation="vertical"
     tools:context=".CalendarActivity">
 
+    <ImageButton
+        android:id="@+id/btnsendcalendar"
+        android:layout_width="84dp"
+        android:layout_height="68dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/chatroomicon" />
+
+
+
     <TextView
         android:id="@+id/function_name"
         android:layout_width="match_parent"

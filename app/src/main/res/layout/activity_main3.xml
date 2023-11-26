@@ -58,6 +58,10 @@
 
         </RelativeLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
         <ImageButton
             android:id="@+id/btnsendgpt"
             android:layout_width="84dp"
@@ -66,6 +70,17 @@
             android:padding="8dp"
             android:scaleType="fitCenter"
             android:src="@drawable/gpticon" />
+
+            <ImageButton
+                android:id="@+id/btnsendcalendar"
+                android:layout_width="84dp"
+                android:layout_height="68dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/calicon" />
+
+        </LinearLayout>
 
     </RelativeLayout>
 
