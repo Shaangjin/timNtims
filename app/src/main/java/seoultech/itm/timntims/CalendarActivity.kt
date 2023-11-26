@@ -19,6 +19,7 @@ import android.widget.Button
 import android.widget.CalendarView
 import android.widget.EditText
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -57,16 +58,11 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
 
 
 
-    /**
-     * Google Calendar API에 접근하기 위해 사용되는 구글 캘린더 API 서비스 객체
-     */
+
     private var mService: Calendar? = null
 
     val binding by lazy  {ActivityCalendarBinding.inflate(layoutInflater)}
 
-    /**
-     * Google Calendar API 호출 관련 메커니즘 및 AsyncTask을 재사용하기 위해 사용
-     */
     private var mID = 0
     var mCredential: GoogleAccountCredential? = null
     private var mStatusText: TextView? = null
@@ -93,6 +89,14 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        //intent
+        binding.btnChatroom.setOnClickListener {
+            // Create the intent to start MainActivity4
+            val intent = Intent(this, MainActivity3::class.java)
+            // Start MainActivity4 and expect a result back
+            startForResult.launch(intent)
+        }
 
         // UI값 생성
         calendarView=binding.calendarView
@@ -447,7 +451,8 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                          * CalendarTitle 이름의 캘린더에서 10개의 이벤트를 가져와 리턴
                          */  private get() {
                 val now = DateTime(System.currentTimeMillis())
-                val calendarID = getCalendarID("English Premier League") ?: return "캘린더를 먼저 생성하세요."
+
+                val calendarID = getCalendarID(binding.editextGetCalendar.text.toString()) ?: return "The name is not exists in your Google Calendar"
                 val events = mService!!.events().list(calendarID) //"primary")
 //                    .setMaxResults(50) //.setTimeMin(now)
 //                    .setOrderBy("startTime")
@@ -466,7 +471,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                         start = event.start.date
                     }
                     if(start.toString().contains("2023"))
-                    eventStrings.add(String.format("%s \n (%s)", event.summary, start))
+                        eventStrings.add(String.format("%s \n (%s)", event.summary, start))
                 }
                 return eventStrings.size.toString() + "개의 데이터를 가져왔습니다."
             }
@@ -494,23 +499,22 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
             // 구글 캘린더에 새로 만든 캘린더를 추가
             val createdCalendar = mService!!.calendars().insert(calendar).execute()
 
-            // 추가한 캘린더의 ID를 가져옴.
+            // get Cal ID I make now in GC
             val calendarId = createdCalendar.id
 
-
-            // 구글 캘린더의 캘린더 목록에서 새로 만든 캘린더를 검색
+            // search the calendar I make now in GC
             val calendarListEntry = mService!!.calendarList()[calendarId].execute()
 
-            // 캘린더의 배경색을 파란색으로 표시  RGB
+            // Calendar Colour
             calendarListEntry.backgroundColor = "#0000ff"
 
-            // 변경한 내용을 구글 캘린더에 반영
+            // update the modified context on Google Calendar
             val updatedCalendarListEntry = mService!!.calendarList()
                 .update(calendarListEntry.id, calendarListEntry)
                 .setColorRgbFormat(true)
                 .execute()
 
-            // 새로 추가한 캘린더의 ID를 리턴
+            // New Cal Id return
             return "${calendar.summary} 캘린더가 생성되었습니다."
         }
 
@@ -554,8 +558,6 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
             val calander: java.util.Calendar
             calander = java.util.Calendar.getInstance()
             val simpledateformat: SimpleDateFormat
-            //simpledateformat = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ", Locale.KOREA);
-            // Z에 대응하여 +0900이 입력되어 문제 생겨 수작업으로 입력
             simpledateformat =
                 SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+09:00", Locale.KOREA)
             val datetime = simpledateformat.format(calander.time)
@@ -588,7 +590,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
     }
 
 
-    // 달력 내용 조회, 수정
+    // My Calendar view / modify
     fun checkDay(cYear: Int, cMonth: Int, cDay: Int, userID: String) {
         //저장할 파일 이름설정
         fname = "" + userID + cYear + "-" + (cMonth + 1) + "" + "-" + cDay + ".txt"
@@ -638,7 +640,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
     }
 
 
-    // 달력 내용 제거
+    // My Calendar delete
     @SuppressLint("WrongConstant")
     fun removeDiary(readDay: String?) {
         var fileOutputStream: FileOutputStream
@@ -653,7 +655,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
     }
 
 
-    // 달력 내용 추가
+    // My Calendar add
     @SuppressLint("WrongConstant")
     fun saveDiary(readDay: String?) {
         var fileOutputStream: FileOutputStream
@@ -664,6 +666,17 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
             fileOutputStream.close()
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Extract the data from the result intent
+            val data: Intent? = result.data
+            val message = data?.getStringExtra("message_key")
+            message?.let {
+
+            }
         }
     }
 
