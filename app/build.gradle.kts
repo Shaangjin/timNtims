@@ -9,7 +9,6 @@ android {
     namespace = "seoultech.itm.timntims"
     compileSdk = 34
 
-
     defaultConfig {
         applicationId = "seoultech.itm.timntims"
         minSdk = 29
@@ -33,7 +32,6 @@ android {
             )
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -52,9 +50,8 @@ android {
     }
 }
 
-
 dependencies {
-
+    implementation ("org.apache.opennlp:opennlp-tools:1.9.3")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")

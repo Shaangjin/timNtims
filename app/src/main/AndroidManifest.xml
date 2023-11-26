@@ -31,24 +31,40 @@
         <activity
             android:name=".MainActivity3"
             android:exported="false" />
+
+        <activity
+            android:name=".MainActivity4"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
         <activity
             android:name=".MainActivity2"
             android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".FBActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".SignInActivity"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".FBActivity"
+            android:name=".SignUpActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
+
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
@@ -57,5 +73,4 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
     </application>
-
 </manifest>

@@ -1,5 +1,6 @@
 package seoultech.itm.timntims
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -12,13 +13,19 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-class HomeActivity : AppCompatActivity(){
+class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks{
 
     private val roomSetupFragment by lazy { RoomSetupFragment() }
     private val roomListFragment by lazy { RoomListFragment() }
     private val userProfileFragment by lazy { UserProfileFragment() }
     private val fManager by lazy { supportFragmentManager }
     private lateinit var bottomNavigationView : NavigationBarView
+
+    override fun finishHomeActivity() { // Override callback function in UserProfileFragment
+        val intent = Intent(this, SignInActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,10 +68,9 @@ class HomeActivity : AppCompatActivity(){
             }
         }
 
-        var fManager = supportFragmentManager
         var transaction = fManager.beginTransaction()
 
-        transaction.add(R.id.fragment_container_view, roomListFragment)
+        transaction.add(R.id.fragment_container_view, roomSetupFragment)
 
         transaction.commit()
     }

@@ -40,7 +40,7 @@ class MainActivity2 : AppCompatActivity() {
 
         val buttonStartSubActivity: Button = findViewById(R.id.button)
         buttonStartSubActivity.setOnClickListener {
-            val intent = Intent(this, CalendarActivity::class.java)
+            val intent = Intent(this, SignInActivity::class.java)
             startActivity(intent)
         }
 

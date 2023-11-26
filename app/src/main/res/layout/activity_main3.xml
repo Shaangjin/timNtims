@@ -6,9 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity3">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
@@ -43,13 +41,13 @@
                 android:layout_centerInParent="true"
                 android:hint="Write here"
                 android:padding="16dp"
-                android:layout_toLeftOf="@+id/btn_send"
+                android:layout_toLeftOf="@+id/btnsend"
                 android:background="@drawable/rounded_corner"/>
 
             <ImageButton
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:id="@+id/btn_send"
+                android:id="@+id/btnsend"
                 android:layout_alignParentEnd="true"
                 android:layout_centerInParent="true"
                 android:layout_marginStart="10dp"
@@ -59,6 +57,15 @@
                 />
 
         </RelativeLayout>
+
+        <ImageButton
+            android:id="@+id/btnsendgpt"
+            android:layout_width="84dp"
+            android:layout_height="68dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/gpticon" />
 
     </RelativeLayout>
 
