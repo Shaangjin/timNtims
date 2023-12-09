@@ -1,4 +1,4 @@
-package seoultech.itm.timntims
+package seoultech.itm.timntims.sign
 
 import android.os.Bundle
 import android.widget.Button
@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import seoultech.itm.timntims.R
 
 class SignUpActivity : AppCompatActivity(){
     private lateinit var auth: FirebaseAuth

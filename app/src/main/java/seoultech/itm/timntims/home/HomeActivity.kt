@@ -1,19 +1,14 @@
-package seoultech.itm.timntims
+package seoultech.itm.timntims.home
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.commit
-import com.google.android.gms.dynamic.SupportFragmentWrapper
 import com.google.android.material.navigation.NavigationBarView
-import com.google.android.material.navigation.NavigationView
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import seoultech.itm.timntims.R
+import seoultech.itm.timntims.sign.SignInActivity
 
-class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks{
+class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks {
 
     private val roomSetupFragment by lazy { RoomSetupFragment() }
     private val roomListFragment by lazy { RoomListFragment() }
