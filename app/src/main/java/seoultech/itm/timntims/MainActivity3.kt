@@ -10,13 +10,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import opennlp.tools.namefind.NameFinderME
-import opennlp.tools.namefind.TokenNameFinderModel
-import opennlp.tools.tokenize.SimpleTokenizer
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.ktx.Firebase
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.MemoryFormat
@@ -30,6 +33,7 @@ import seoultech.itm.timntims.model.MessageItem
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+
 
 class MainActivity3 : AppCompatActivity() {
     private lateinit var binding: ActivityMain3Binding
@@ -60,8 +64,29 @@ class MainActivity3 : AppCompatActivity() {
         //TextSum
         textSummarizer = TextSummarizer(this)
 
+        val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+        val databaseRef: DatabaseReference = database.reference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/") // "path_to_your_data"를 적절한 경로로 변경
 
+        val valueEventListener: ValueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // 데이터 변경 이벤트가 발생할 때 호출됩니다.
+                for (snapshot in dataSnapshot.children) {
+                    // 데이터가 String 타입인 경우에 대한 처리
+                    val message = snapshot.getValue(String::class.java)
+                    message?.let {
+                        addToChat(it, ChatItem.TYPE_MESSAGE_RECEIVED)
+                    }
+                }
+            }
 
+            override fun onCancelled(databaseError: DatabaseError) {
+                // 오류 처리 로직
+                Log.e("Firebase", "Error reading data: ${databaseError.message}")
+            }
+        }
+
+        // ValueEventListener를 데이터베이스 참조에 연결
+        databaseRef.addValueEventListener(valueEventListener)
 
         // Setup RecyclerView
         binding.recyclerView.apply {
@@ -105,7 +130,7 @@ class MainActivity3 : AppCompatActivity() {
                 }
                 //Summarize Function
                 else if(SendMessage =="summarize"){
-                        summarizeGptResponse()
+                    summarizeGptResponse()
 
                 }
                 /*else if(SendMessage.split(":")[0] =="organization") {
@@ -145,6 +170,21 @@ class MainActivity3 : AppCompatActivity() {
 
                 else{
                     addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
+
+                    //sadasd
+                    val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+                    val databaseReference: DatabaseReference = database.reference
+                    val auth = Firebase.auth
+
+                    val currentUserID = auth.currentUser?.uid
+                    SendMessage
+//                    val currentTimeInMillis = System.currentTimeMillis()
+
+
+//                    databaseReference.child("firstmessage/$currentUserID/").setValue(SendMessage)
+                    val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
+                    newChildRef.setValue(SendMessage)
+//                    databaseReference.child("chat_members/").setValue(currentUserID)
                 }
 
 
@@ -294,7 +334,3 @@ class MainActivity3 : AppCompatActivity() {
     }
 
 }
-
-
-
-

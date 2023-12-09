@@ -1,7 +1,6 @@
-package seoultech.itm.timntims.sign
+package seoultech.itm.timntims.model
 
 data class User(
-
     val uid: String,
     val email: String,
     val firstName: String,
