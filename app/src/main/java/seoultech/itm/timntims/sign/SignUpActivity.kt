@@ -8,8 +8,11 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 import seoultech.itm.timntims.R
 
@@ -19,10 +22,16 @@ class SignUpActivity : AppCompatActivity(){
     private lateinit var emailEdit: EditText
     private lateinit var pwdEdit1: EditText
     private lateinit var pwdEdit2: EditText
+    private lateinit var firstNameEdit: EditText
+    private lateinit var lastNameEdit: EditText
+
 
     private lateinit var emailText: TextView
     private lateinit var pwdText1: TextView
     private lateinit var pwdText2: TextView
+    private lateinit var firstNameText: TextView
+    private lateinit var lastNameText: TextView
+
 
     private lateinit var signUpBtn: Button
 
@@ -36,10 +45,14 @@ class SignUpActivity : AppCompatActivity(){
         emailEdit = findViewById(R.id.emailEdit)
         pwdEdit1 = findViewById(R.id.pwdEdit1)
         pwdEdit2 = findViewById(R.id.pwdEdit2)
+        firstNameEdit = findViewById(R.id.firstNameEdit)
+        lastNameEdit = findViewById(R.id.lastNameEdit)
 
         emailText = findViewById(R.id.emailText)
         pwdText1 = findViewById(R.id.pwdText1)
         pwdText2 = findViewById(R.id.pwdText2)
+        firstNameText = findViewById(R.id.firstNameText)
+        lastNameText = findViewById(R.id.lastNameText)
 
         signUpBtn = findViewById(R.id.SignUpBtn)
 
@@ -55,8 +68,10 @@ class SignUpActivity : AppCompatActivity(){
             override fun afterTextChanged(s: Editable?) {
                 if (isValidEmail(s.toString())) {
                     emailText.text = "Format is correct."
+                    emailText.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.black))
                 } else {
                     emailText.text = "Please enter a valid email address."
+                    emailText.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.red))
                 }
                 updateSignUpButton()
             }
@@ -69,8 +84,10 @@ class SignUpActivity : AppCompatActivity(){
             override fun afterTextChanged(s: Editable?) {
                 if (isValidPassword(s.toString())) {
                     pwdText1.text = "Format is correct."
+                    pwdText1.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.black))
                 } else {
                     pwdText1.text = "At least 6 characters with numbers/alphabets are needed."
+                    pwdText1.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.red))
                 }
                 updateSignUpButton()
             }
@@ -84,8 +101,34 @@ class SignUpActivity : AppCompatActivity(){
             override fun afterTextChanged(s: Editable?) {
                 if (isPasswordMatch(pwdEdit1.text.toString(), s.toString())) {
                     pwdText2.text = "Passwords match."
+                    pwdText2.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.black))
                 } else {
                     pwdText2.text = "Passwords do not match."
+                    pwdText2.setTextColor(ContextCompat.getColor(this@SignUpActivity, R.color.red))
+                }
+                updateSignUpButton()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        firstNameEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (!isValidName(firstNameEdit.text.toString())) {
+                    firstNameText.text = "Enter your first name."
+                }
+                updateSignUpButton()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        lastNameEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (!isValidName(lastNameEdit.text.toString())) {
+                    lastNameText.text = "Enter your last name."
                 }
                 updateSignUpButton()
             }
@@ -122,10 +165,44 @@ class SignUpActivity : AppCompatActivity(){
         return password == confirmPassword // pwdEdit1과 pwdEdit2의 내용이 동일한지 확인
     }
 
+    private fun isValidName(name: String): Boolean {
+        return name != null
+    }
+
+    private fun createUser(userId: String, email: String, firstName: String, lastName: String) {
+        val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+        val databaseReference: DatabaseReference = database.reference
+        val path = "" // Realtime DB의 users/에 저장
+
+        val newUser = User(
+            userId,
+            email,
+            firstName,
+            lastName,
+            null
+        )
+
+        databaseReference.child("users/$userId").setValue(newUser)
+//            .addOnSuccessListener {
+//                // 데이터 쓰기 성공 시 동작
+//            }
+//            .addOnFailureListener {
+//                // 데이터 쓰기 실패 시 동작
+//            }
+    }
+
     private fun signUp(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if(task.isSuccessful){
+                    val user = auth.currentUser
+                    val userId = user?.uid // 사용자 UID 가져오기
+
+                    // 사용자 정보를 Realtime Database에 저장
+                    if (userId != null) {
+                        createUser(userId, emailEdit.text.toString(), firstNameEdit.text.toString(), lastNameEdit.text.toString())
+                    }
+//                    createUser(emailText.text.toString(), firstNameText.text.toString(), lastNameText.text.toString())
                     Toast.makeText(this, "Registration Succeeds.", Toast.LENGTH_SHORT).show()
                     finish() // 회원가입이 성공하면 액티비티 종료
                 } else {
