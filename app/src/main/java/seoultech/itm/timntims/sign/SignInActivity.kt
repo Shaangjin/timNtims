@@ -1,10 +1,12 @@
 package seoultech.itm.timntims.sign
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -28,6 +30,20 @@ class SignInActivity : AppCompatActivity() {
         if (auth.currentUser != null) { // 자동 로그인: 이미 로그인한 사용자가 있으면 HomeActivity로 이동
             moveHomeActivity()
         }
+
+        val videoView = findViewById<VideoView>(R.id.videoView)
+
+        // 비디오 파일의 경로를 설정
+        val videoPath = "android.resource://$packageName/" + R.raw.video_sign_in // 비디오 파일의 이름을 여기에 넣으세요
+
+        // 비디오 뷰에 비디오 설정
+        videoView.setVideoURI(Uri.parse(videoPath))
+
+        // 비디오 재생 시작
+        videoView.start()
+
+        // 반복 재생
+        videoView.setOnCompletionListener { mp -> mp.start() }
 
         emailLoginBtn  = findViewById(R.id.emailLoginBtn)
         emailEdit = findViewById(R.id.emailEdit)
