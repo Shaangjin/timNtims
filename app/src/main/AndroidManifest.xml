@@ -46,10 +46,6 @@
         </activity>
 
         <activity
-            android:name=".FBActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".SignInActivity"
             android:exported="true" >
             <intent-filter>

@@ -473,7 +473,7 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                         start = event.start.date
                     }
                     if(start.toString().contains("2023"))
-                    eventStrings.add(String.format("%s \n (%s)", event.summary, start))
+                        eventStrings.add(String.format("%s \n (%s)", event.summary, start))
                 }
                 return eventStrings.size.toString() + "개의 데이터를 가져왔습니다."
             }
