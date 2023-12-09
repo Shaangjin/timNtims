@@ -472,8 +472,9 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                         // 모든 이벤트가 시작 시간을 갖고 있지는 않다. 그런 경우 시작 날짜만 사용
                         start = event.start.date
                     }
-                    if(start.toString().contains("2023"))
-                    eventStrings.add(String.format("%s \n (%s)", event.summary, start))
+                    if(start.toString().contains("2023")) {
+                        eventStrings.add(String.format("%s \n (%s)", event.summary, start))
+                    }
                 }
                 return eventStrings.size.toString() + "개의 데이터를 가져왔습니다."
             }
