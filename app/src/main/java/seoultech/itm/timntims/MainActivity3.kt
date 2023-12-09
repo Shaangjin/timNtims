@@ -18,6 +18,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import org.pytorch.IValue
@@ -65,7 +66,7 @@ class MainActivity3 : AppCompatActivity() {
         textSummarizer = TextSummarizer(this)
 
         val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-        val databaseRef: DatabaseReference = database.reference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/") // "path_to_your_data"를 적절한 경로로 변경
+        val databaseRef: Query = database.reference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").limitToLast(1) // "path_to_your_data"를 적절한 경로로 변경
 
         val valueEventListener: ValueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
