@@ -456,10 +456,10 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
                 val now = DateTime(System.currentTimeMillis())
                 val calendarID = getCalendarID(binding.editextImport.text.toString()) ?: return "캘린더를 먼저 생성하세요."
                 val events = mService!!.events().list(calendarID) //"primary")
-//                    .setMaxResults(50) //.setTimeMin(now)
-//                    .setOrderBy("startTime")
+                    .setMaxResults(50) //.setTimeMin(now)
+                    .setOrderBy("startTime")
                     .setOrderBy("updated")
-//                    .setSingleEvents(true)
+                    .setSingleEvents(true)
                     .execute()
                 val items = events.items
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.KOREA)
