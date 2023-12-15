@@ -2,6 +2,6 @@
     <!-- Base application theme. -->
     <style name="Theme.TimNTims" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimaryDark</item>
     </style>
 </resources>

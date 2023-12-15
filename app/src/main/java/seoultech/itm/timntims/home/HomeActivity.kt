@@ -1,29 +1,22 @@
 package seoultech.itm.timntims.home
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationBarView
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import seoultech.itm.timntims.R
-import seoultech.itm.timntims.model.User
 import seoultech.itm.timntims.sign.SignInActivity
 
-class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks {
+class HomeActivity : AppCompatActivity(), SettingFragment.Callbacks {
 
     private val roomSetupFragment by lazy { RoomSetupFragment() }
     private val roomListFragment by lazy { RoomListFragment() }
-    private val userProfileFragment by lazy { UserProfileFragment() }
+    private val settingFragment by lazy { SettingFragment() }
     private val fManager by lazy { supportFragmentManager }
     private lateinit var bottomNavigationView : NavigationBarView
 
@@ -55,7 +48,7 @@ class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks {
                     true
                 }
                 R.id.third -> {
-                    changeFragment(userProfileFragment)
+                    changeFragment(settingFragment)
                     true
                 }
                 else -> false
@@ -73,7 +66,7 @@ class HomeActivity : AppCompatActivity(), UserProfileFragment.Callbacks {
                     true
                 }
                 R.id.third -> {
-                    changeFragment(userProfileFragment)
+                    changeFragment(settingFragment)
                     true
                 }
                 else -> false

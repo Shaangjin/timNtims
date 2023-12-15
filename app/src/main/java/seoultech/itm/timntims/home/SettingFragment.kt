@@ -13,14 +13,14 @@ import seoultech.itm.timntims.R
 
 /**
  * A simple [Fragment] subclass.
- * Use the [UserProfileFragment.newInstance] factory method to
+ * Use the [SettingFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-class UserProfileFragment : Fragment() {
+class SettingFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -51,7 +51,7 @@ class UserProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        val v = inflater.inflate(R.layout.fragment_user_profile, container, false)
+        val v = inflater.inflate(R.layout.fragment_setting, container, false)
 
         signOutBtn = v.findViewById(R.id.signOutBtn)
 
@@ -78,7 +78,7 @@ class UserProfileFragment : Fragment() {
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            UserProfileFragment().apply {
+            SettingFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_PARAM1, param1)
                     putString(ARG_PARAM2, param2)

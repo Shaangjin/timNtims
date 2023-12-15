@@ -110,8 +110,6 @@ class RoomSetupFragment : Fragment() {
                                     // 사용자를 채팅 멤버로 추가
                                     databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true)
 
-                                    // 추가적인 작업 수행
-                                    // ...
                                 }
                             }
 

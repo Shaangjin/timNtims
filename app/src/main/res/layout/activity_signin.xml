@@ -22,7 +22,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:background="@color/white"
         android:src="@drawable/timntims"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,6 +34,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -50,10 +51,11 @@
                 android:id="@+id/emailEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:hint="Email"
                 android:inputType="textEmailAddress"
                 android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:hint="Email" />
+                android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -64,10 +66,11 @@
                 android:id="@+id/pwdEdit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:hint="Password"
                 android:inputType="textPassword"
                 android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:hint="Password" />
+                android:minHeight="48dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
