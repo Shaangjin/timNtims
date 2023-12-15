@@ -101,4 +101,6 @@
         implementation(group = "com.google.http-client", name = "google-http-client-jackson2", version = "1.43.2")
         implementation ("joda-time:joda-time:2.10.13")
 
+        implementation ("com.applandeo:material-calendar-view:1.9.0-rc04")
+
     }
