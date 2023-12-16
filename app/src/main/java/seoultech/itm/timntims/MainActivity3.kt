@@ -1,6 +1,8 @@
 package seoultech.itm.timntims
 
 
+import java.text.SimpleDateFormat
+import java.util.*
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -34,6 +36,7 @@ import seoultech.itm.timntims.databinding.ActivityMain3Binding
 import seoultech.itm.timntims.model.ChatItem
 import seoultech.itm.timntims.model.ImageItem
 import seoultech.itm.timntims.model.MessageItem
+import seoultech.itm.timntims.model.MessageOnFirebase
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -44,7 +47,10 @@ class MainActivity3 : AppCompatActivity() {
     private lateinit var binding: ActivityMain3Binding
     private val messageList = mutableListOf<ChatItem>() // Non-nullable list
     private lateinit var  imageHandler:ImageHandler
-
+    private var initialDataLoaded = false
+    private var messageCount = 0
+    private var messagesProcessed = 0
+    private var newMessageCount = 0
     //GPT 톡방 연결을 위한 변수
     private val REQUEST_CODE = 1
     private val PICK_IMAGE_REQUEST = 2
@@ -62,6 +68,10 @@ class MainActivity3 : AppCompatActivity() {
         }
     }
 
+    val auth = Firebase.auth
+
+    val currentUserID = auth.currentUser?.uid
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,28 +86,41 @@ class MainActivity3 : AppCompatActivity() {
         imageHandler = ImageHandler()
 
         val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-        val databaseRef: Query = database.reference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").limitToLast(1) // "path_to_your_data"를 적절한 경로로 변경
+        val initialLoadRef: Query = database.reference.child("messages/roomExampleFirst/")
 
-        val valueEventListener: ValueEventListener = object : ValueEventListener {
+        val initialListener: ValueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // 데이터 변경 이벤트가 발생할 때 호출됩니다.
+                //messageCount = dataSnapshot.childrenCount.toInt()
+
                 for (snapshot in dataSnapshot.children) {
-                    // 데이터가 String 타입인 경우에 대한 처리
-                    val message = snapshot.getValue(String::class.java)
-                    message?.let {
-                        addToChat(it, ChatItem.TYPE_MESSAGE_RECEIVED)
-                    }
+                    //messagesProcessed++
+
+                    //if (messagesProcessed < messageCount) { // Skip the last messageg
+                        val message = snapshot.getValue(MessageOnFirebase::class.java)
+                        message?.let {
+                            it.contents?.let { contents ->
+                                if (it.authorID != currentUserID){
+                                    addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
+                                }else{
+                                    addToChat(contents, ChatItem.TYPE_MESSAGE_SENT)
+                                }
+                            }
+                        }
+                    //}
                 }
+
+                initialDataLoaded = true
+                initialLoadRef.removeEventListener(this)
+                listenForNewMessages()
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                // 오류 처리 로직
                 Log.e("Firebase", "Error reading data: ${databaseError.message}")
             }
         }
 
-        // ValueEventListener를 데이터베이스 참조에 연결
-        databaseRef.addValueEventListener(valueEventListener)
+        initialLoadRef.addListenerForSingleValueEvent(initialListener)
+
 
         // Setup RecyclerView
         binding.recyclerView.apply {
@@ -152,17 +175,17 @@ class MainActivity3 : AppCompatActivity() {
                     //sadasd
                     val database: FirebaseDatabase = FirebaseDatabase.getInstance()
                     val databaseReference: DatabaseReference = database.reference
-                    val auth = Firebase.auth
 
-                    val currentUserID = auth.currentUser?.uid
-                    SendMessage
-//                    val currentTimeInMillis = System.currentTimeMillis()
+
+                    val currentTimeInMillis = getCurrentTimeString()
 
 
 //                    databaseReference.child("firstmessage/$currentUserID/").setValue(SendMessage)
-                    val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
-                    newChildRef.setValue(SendMessage)
-//                    databaseReference.child("chat_members/").setValue(currentUserID)
+                    //original
+                    //val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
+                    //newChildRef.setValue(SendMessage)
+
+                    databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
                 }
 
 
@@ -182,7 +205,10 @@ class MainActivity3 : AppCompatActivity() {
     private fun showResultToast(result: String) {
         Toast.makeText(this, result, Toast.LENGTH_SHORT).show()
     }
-
+    fun getCurrentTimeString(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return dateFormat.format(Date())
+    }
     private fun summarizeGptResponse(){
         var summarizedGptResponse = ""
         messageList.forEach{
@@ -210,6 +236,38 @@ class MainActivity3 : AppCompatActivity() {
             binding.recyclerView.adapter?.notifyDataSetChanged()
             binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
         }
+    }
+
+    private fun listenForNewMessages() {
+        val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+        val newMessageRef: Query = database.reference.child("messages/roomExampleFirst/").limitToLast(1)
+
+        val newMessageListener: ValueEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (initialDataLoaded) { // To ensure we skip initial data load
+                    for (snapshot in dataSnapshot.children) {
+                        if(newMessageCount>0){
+                            val message = snapshot.getValue(MessageOnFirebase::class.java)
+                            message?.let {
+                                it.contents?.let { contents ->
+                                    if (it.authorID != currentUserID){
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
+                                    }
+                                }
+                            }    
+                        }
+                        newMessageCount++
+
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Error reading data: ${databaseError.message}")
+            }
+        }
+
+        newMessageRef.addValueEventListener(newMessageListener)
     }
     private fun imageClassification(uri:Uri){
         var bitmap: Bitmap? = null
