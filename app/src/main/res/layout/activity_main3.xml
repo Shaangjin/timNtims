@@ -62,14 +62,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <ImageButton
-            android:id="@+id/btnsendgpt"
-            android:layout_width="84dp"
-            android:layout_height="68dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/gpticon" />
+            <ImageButton
+                android:id="@+id/btnsendgpt"
+                android:layout_width="84dp"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/gpticon" />
 
             <ImageButton
                 android:id="@+id/btnsendcalendar"
@@ -79,6 +79,15 @@
                 android:padding="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/calicon" />
+
+            <ImageButton
+                android:id="@+id/uploadIMG"
+                android:layout_width="84dp"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/gpticon" />
 
         </LinearLayout>
 

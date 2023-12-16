@@ -3,6 +3,7 @@
         id("org.jetbrains.kotlin.android")
         // Google services Gradle plugin
         id("com.google.gms.google-services")
+        id ("kotlin-kapt")
     }
 
     android {
@@ -101,4 +102,20 @@
         implementation(group = "com.google.http-client", name = "google-http-client-jackson2", version = "1.43.2")
         implementation ("joda-time:joda-time:2.10.13")
 
+        implementation ("com.applandeo:material-calendar-view:1.9.0-rc04")
+//        implementation ("com.github.prolificinteractive:material-calendarview:2.0.1")
+
+        implementation("androidx.room:room-runtime:2.6.1")
+        annotationProcessor("androidx.room:room-compiler:2.6.1")
+        implementation ("androidx.room:room-ktx:2.3.0")
+        kapt("androidx.room:room-compiler:2.6.1")
+
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0-RC")
+
+        // Glide
+        implementation ("com.github.bumptech.glide:glide:4.16.0") // replace 4.x.x with the latest version
+        annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0") // replace 4.x.x with the latest version
+
+        // Firebase
+        implementation ("com.google.firebase:firebase-storage-ktx")
     }

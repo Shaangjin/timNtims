@@ -6,13 +6,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -36,12 +39,15 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
+
 class MainActivity3 : AppCompatActivity() {
     private lateinit var binding: ActivityMain3Binding
     private val messageList = mutableListOf<ChatItem>() // Non-nullable list
+    private lateinit var  imageHandler:ImageHandler
 
     //GPT 톡방 연결을 위한 변수
     private val REQUEST_CODE = 1
+    private val PICK_IMAGE_REQUEST = 2
     private lateinit var textSummarizer: TextSummarizer
 
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -62,8 +68,12 @@ class MainActivity3 : AppCompatActivity() {
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         //TextSum
         textSummarizer = TextSummarizer(this)
+
+        //glide
+        imageHandler = ImageHandler()
 
         val database: FirebaseDatabase = FirebaseDatabase.getInstance()
         val databaseRef: Query = database.reference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").limitToLast(1) // "path_to_your_data"를 적절한 경로로 변경
@@ -100,6 +110,10 @@ class MainActivity3 : AppCompatActivity() {
             addResponse(it) // Add the received message to the chat
         }
 
+        binding.uploadIMG.setOnClickListener {
+            openGalleryForImage()
+        }
+
         //Intent
         binding.btnsendgpt.setOnClickListener {
             // Create the intent to start MainActivity4
@@ -120,54 +134,17 @@ class MainActivity3 : AppCompatActivity() {
             val SendMessage = binding.etMsg.text.toString().trim()
             if (SendMessage.isNotEmpty()) {
 
-                //Image Upload
-                //일단 임시적으로 아래 코드 사용
-                if(SendMessage == "image.jpg"){
-                    addToChat(SendMessage, ChatItem.TYPE_IMAGE_SENT)
-
-                    //val resultClass = deepLearning.inference(SendMessage)
-                    //showResultToast(resultClass)
-
-                }
                 //Summarize Function
-                else if(SendMessage =="summarize"){
+                if(SendMessage =="summarize"){
                     summarizeGptResponse()
 
+                }else if (SendMessage=="glide"){
+                    messageList.add(ImageItem(ChatItem.TYPE_IMAGE_RECEIVED))
+                    binding.recyclerView.adapter?.notifyDataSetChanged()
+                    binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+                    //imageClassification(imageUri)
                 }
-                /*else if(SendMessage.split(":")[0] =="organization") {
 
-                        // Load the organization name finder model
-                    val nameFinderModel: TokenNameFinderModel // Declare the variable in an accessible scope
-
-                    try {
-                        // Load the organization name finder model
-                        this.assets.open("en-ner-organization.bin").use { modelIn ->
-                            nameFinderModel = TokenNameFinderModel(modelIn)
-                        }
-
-                        val nameFinder = NameFinderME(nameFinderModel)
-
-                        val tokenizer = SimpleTokenizer.INSTANCE
-                        val tokens = tokenizer.tokenize(SendMessage)
-
-                        // Find names within the tokenized text
-                        val nameSpans = nameFinder.find(tokens)
-
-                        // Extract and return the organization names found in the text
-                        val names = nameSpans.map { span -> tokens.slice(span.getStart()..span.getEnd() - 1).joinToString(" ") }.toTypedArray()
-
-                        // Do something with the extracted names
-                        // For example, you could join them into a string and show a toast or update the UI
-                        val namesString = names.joinToString(", ")
-                        //addResponse(namesString)
-
-                    } catch (e: IOException) {
-                        // Handle the exception
-                        Log.e("MainActivity", "Error loading the name finder model", e)
-                    }
-
-                }
-                */
 
                 else{
                     addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
@@ -196,9 +173,6 @@ class MainActivity3 : AppCompatActivity() {
                 //val ChatItem.TYPE_IMAGE_SENT = 2
                 //val ChatItem.TYPE_IMAGE_RECEIVED = 3
 
-                //GPT API
-                //Maybe FireBase?
-                //GPT API
 
                 binding.tvWelcome.visibility = View.GONE
             }
@@ -231,31 +205,19 @@ class MainActivity3 : AppCompatActivity() {
             }else if(sentBy ==ChatItem.TYPE_MESSAGE_RECEIVED){
                 messageList.add(MessageItem(message, sentBy))
 
-            }else if(sentBy ==ChatItem.TYPE_IMAGE_SENT){
-                messageList.add(ImageItem(message, sentBy))
-
-
-                //Deep learning Image Classification
-                imageClassification(message)
-
-
-            }
-            else{
-                messageList.add(ImageItem(message, sentBy))
-                imageClassification(message)
             }
 
             binding.recyclerView.adapter?.notifyDataSetChanged()
             binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
         }
     }
-    private fun imageClassification(message:String){
+    private fun imageClassification(uri:Uri){
         var bitmap: Bitmap? = null
         var module: Module? = null
         try {
             // creating bitmap from packaged into app android asset 'image.jpg',
             // app/src/main/assets/image.jpg
-            bitmap = BitmapFactory.decodeStream(assets.open(message))
+            bitmap = uriToBitmap(this,uri)
             // loading serialized torchscript module from packaged into app android asset model.pt,
             // app/src/model/assets/model.pt
             module = LiteModuleLoader.load(MainActivity.assetFilePath(this, "model.pt"))
@@ -294,8 +256,20 @@ class MainActivity3 : AppCompatActivity() {
         addToChat(response, ChatItem.TYPE_MESSAGE_RECEIVED)
     }
 
-
-
+    private fun openGalleryForImage() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+    fun uriToBitmap(context: Context, imageUri: Uri): Bitmap? {
+        return try {
+            context.contentResolver.openInputStream(imageUri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -307,6 +281,27 @@ class MainActivity3 : AppCompatActivity() {
                 addResponse(result)
             }
         }
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
+            val imageUri: Uri = data.data!!
+            imageHandler.uploadImage(imageUri)
+
+            messageList.add(ImageItem(imageUri, ChatItem.TYPE_IMAGE_SENT))
+            binding.recyclerView.adapter?.notifyDataSetChanged()
+            binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+            imageClassification(imageUri)
+
+            //Below code is for the counter part image, not mine
+
+
+
+
+
+            //Deep learning Image Classification
+
+                //val resultClass = deepLearning.inference(SendMessage)
+                //showResultToast(resultClass)
+            }
+
     }
     companion object {
         /**

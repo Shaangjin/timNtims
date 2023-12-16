@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import seoultech.itm.timntims.ImageHandler;
 import seoultech.itm.timntims.R;
 import seoultech.itm.timntims.model.ChatItem;
 import seoultech.itm.timntims.model.ImageItem;
@@ -40,6 +41,7 @@ import java.io.IOException;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<ChatItem> chatItems;
+    private ImageHandler imageHandler ;
     private Context context;
     public ChatAdapter(Context context, List<ChatItem> chatItems) {
         this.context = context;
@@ -101,14 +103,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder.right_image_view.setVisibility(View.VISIBLE);
 
                 ImageItem image = (ImageItem) chatItem;
-                Bitmap bitmap;
-                try {
-                    bitmap = BitmapFactory.decodeStream(context.getAssets().open(image.getUrl()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
 
-                imageHolder.right_image_item.setImageBitmap(bitmap);
+                imageHolder.right_image_item.setImageURI(image.getUri());
 
 
                 break;
@@ -119,15 +115,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder2.right_image_view.setVisibility(View.GONE);
                 imageHolder2.left_image_view.setVisibility(View.VISIBLE);
 
-                ImageItem image2 = (ImageItem) chatItem;
-                Bitmap bitmap2;
-                try {
-                    bitmap2 = BitmapFactory.decodeStream(context.getAssets().open(image2.getUrl()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                imageHolder2.left_image_item.setImageBitmap(bitmap2);
+//                ImageItem image2 = (ImageItem) chatItem;
+                imageHandler.downloadImage(imageHolder2.left_image_item);
+//                imageHolder2.left_image_item.setImageURI(image2.getUri());
 
 
                 break;

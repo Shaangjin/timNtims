@@ -6,21 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
+import seoultech.itm.timntims.adapter.SetUpFragmentAdapter
 import seoultech.itm.timntims.model.Chat
-import java.time.LocalDate
-import java.util.Date
 
 
 /**
@@ -56,82 +54,93 @@ class RoomSetupFragment : Fragment() {
     ): View? {
         val v: View = inflater.inflate(R.layout.fragment_room_setup, container, false)
 
-        val editName = v.findViewById<TextView>(R.id.editText1)
-        val editCode = v.findViewById<TextView>(R.id.editText2)
+        var firFragment = RoomCreateFragment.newInstance("First","2022")
+        var secFragment = RoomJoinFragment.newInstance("Second","2022")
+        val myFrags = listOf(firFragment,secFragment)
+        val fragAdapter = SetUpFragmentAdapter(this)
+        fragAdapter.fragList = myFrags
+        val viewPager = v.findViewById<ViewPager2>(R.id.viewPager)
+        viewPager.adapter = fragAdapter
 
-        val buttonCreate = v.findViewById<Button>(R.id.button1)
-        val buttonJoin = v.findViewById<Button>(R.id.button2)
+        firFragment.setFireBase(database, databaseReference, auth)
+        secFragment.setFireBase(database, databaseReference, auth)
 
-        buttonCreate.setOnClickListener{
-            val currentUserID = auth.currentUser?.uid
-            val chatName = editName.text.toString()
-            val currentTimeInMillis = System.currentTimeMillis()
-            val roomId = generateRandomString(8)
-
-            var newChat = Chat(roomId, chatName, currentTimeInMillis, false)
-
-            databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat) // 생성된 채팅방 아이디를 user의 rooms에 저장
-
-            if (currentUserID != null) {
-                databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true) // chat_member에 해당 roomId의 멤버에 uid 추가
-            }
-
-            databaseReference.child("chat_rooms/$roomId").setValue(true) // chat_rooms에 room id 추가
-
-            editName.text = ""
-        }
-
-        buttonJoin.setOnClickListener {
-            val currentUserID = auth.currentUser?.uid
-            val chatCode = editCode.text.toString() // 사용자가 입력한 채팅방 코드
-
-            val chatRoomsReference = databaseReference.child("chat_rooms")
-
-            chatRoomsReference.child(chatCode).addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        // 채팅방이 존재하는 경우
-                        val roomId = dataSnapshot.key.toString()
-                        val userRoomsReference = databaseReference.child("users/$currentUserID/rooms")
-
-                        userRoomsReference.child(roomId).addListenerForSingleValueEvent(object : ValueEventListener {
-                            override fun onDataChange(roomSnapshot: DataSnapshot) {
-                                if (roomSnapshot.exists()) {
-                                    // 이미 채팅방에 가입한 경우
-                                    Toast.makeText(requireContext(), "이미 가입한 채팅방입니다.", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    // 채팅방에 가입하지 않은 경우
-                                    val currentTimeInMillis = System.currentTimeMillis()
-                                    val newChat = Chat(roomId, chatCode, currentTimeInMillis, false)
-
-                                    // 사용자의 rooms에 채팅방 정보 저장
-                                    userRoomsReference.child(roomId).setValue(newChat)
-
-                                    // 사용자를 채팅 멤버로 추가
-                                    databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true)
-
-                                }
-                            }
-
-                            override fun onCancelled(roomDatabaseError: DatabaseError) {
-                                // 에러 처리
-                                Toast.makeText(requireContext(), "데이터베이스 오류: ${roomDatabaseError.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        })
-                    } else {
-                        // 채팅방이 존재하지 않는 경우
-                        Toast.makeText(requireContext(), "Please put an exact chat room code.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // 에러 처리
-                    Toast.makeText(requireContext(), "데이터베이스 오류: ${databaseError.message}", Toast.LENGTH_SHORT).show()
-                }
-            })
-
-            editCode.text = ""
-        }
+//        val editName = v.findViewById<TextView>(R.id.editText1)
+//        val editCode = v.findViewById<TextView>(R.id.editText2)
+//
+//        val buttonCreate = v.findViewById<Button>(R.id.button1)
+//        val buttonJoin = v.findViewById<Button>(R.id.button2)
+//
+//        buttonCreate.setOnClickListener{
+//            val currentUserID = auth.currentUser?.uid
+//            val chatName = editName.text.toString()
+//            val currentTimeInMillis = System.currentTimeMillis()
+//            val roomId = generateRandomString(8)
+//
+//            var newChat = Chat(roomId, chatName, currentTimeInMillis, false)
+//
+//            databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat) // 생성된 채팅방 아이디를 user의 rooms에 저장
+//
+//            if (currentUserID != null) {
+//                databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true) // chat_member에 해당 roomId의 멤버에 uid 추가
+//            }
+//
+//            databaseReference.child("chat_rooms/$roomId").setValue(true) // chat_rooms에 room id 추가
+//
+//            editName.text = ""
+//        }
+//
+//        buttonJoin.setOnClickListener {
+//            val currentUserID = auth.currentUser?.uid
+//            val chatCode = editCode.text.toString() // 사용자가 입력한 채팅방 코드
+//
+//            val chatRoomsReference = databaseReference.child("chat_rooms")
+//
+//            chatRoomsReference.child(chatCode).addListenerForSingleValueEvent(object : ValueEventListener {
+//                override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                    if (dataSnapshot.exists()) {
+//                        // 채팅방이 존재하는 경우
+//                        val roomId = dataSnapshot.key.toString()
+//                        val userRoomsReference = databaseReference.child("users/$currentUserID/rooms")
+//
+//                        userRoomsReference.child(roomId).addListenerForSingleValueEvent(object : ValueEventListener {
+//                            override fun onDataChange(roomSnapshot: DataSnapshot) {
+//                                if (roomSnapshot.exists()) {
+//                                    // 이미 채팅방에 가입한 경우
+//                                    Toast.makeText(requireContext(), "이미 가입한 채팅방입니다.", Toast.LENGTH_SHORT).show()
+//                                } else {
+//                                    // 채팅방에 가입하지 않은 경우
+//                                    val currentTimeInMillis = System.currentTimeMillis()
+//                                    val newChat = Chat(roomId, chatCode, currentTimeInMillis, false)
+//
+//                                    // 사용자의 rooms에 채팅방 정보 저장
+//                                    userRoomsReference.child(roomId).setValue(newChat)
+//
+//                                    // 사용자를 채팅 멤버로 추가
+//                                    databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true)
+//
+//                                }
+//                            }
+//
+//                            override fun onCancelled(roomDatabaseError: DatabaseError) {
+//                                // 에러 처리
+//                                Toast.makeText(requireContext(), "데이터베이스 오류: ${roomDatabaseError.message}", Toast.LENGTH_SHORT).show()
+//                            }
+//                        })
+//                    } else {
+//                        // 채팅방이 존재하지 않는 경우
+//                        Toast.makeText(requireContext(), "Please put an exact chat room code.", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//
+//                override fun onCancelled(databaseError: DatabaseError) {
+//                    // 에러 처리
+//                    Toast.makeText(requireContext(), "데이터베이스 오류: ${databaseError.message}", Toast.LENGTH_SHORT).show()
+//                }
+//            })
+//
+//            editCode.text = ""
+//        }
 
 
         return v
