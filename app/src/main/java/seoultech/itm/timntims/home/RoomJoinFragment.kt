@@ -21,6 +21,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -48,8 +49,10 @@ class RoomJoinFragment : Fragment() {
     private lateinit var databaseReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
+    private var job: Job? = null
+
     fun setFireBase(database: FirebaseDatabase, databaseReference: DatabaseReference, auth: FirebaseAuth) {
-        this.database = FirebaseDatabase.getInstance()
+        this.database = database
         this.databaseReference = databaseReference
         this.auth = auth
     }
@@ -82,7 +85,7 @@ class RoomJoinFragment : Fragment() {
 
             // 백그라운드 스레드에서 Firebase 작업을 수행하기 위해 코루틴을 사용합니다.
             // CoroutineScope(Dispatchers.IO).launch 블록 내에서 Firebase 작업을 실행합니다.
-            CoroutineScope(Dispatchers.IO).launch {
+            job = CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val chatRoomsReference = databaseReference.child("chat_rooms")
 
@@ -96,7 +99,7 @@ class RoomJoinFragment : Fragment() {
                         if (roomSnapshot.exists()) {
                             // 이미 채팅방에 가입한 경우
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), "이미 가입한 채팅방입니다.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "You already belongs to [$roomId].", Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             // 채팅방에 가입하지 않은 경우
@@ -108,6 +111,7 @@ class RoomJoinFragment : Fragment() {
 
                             // 사용자를 채팅 멤버로 추가
                             databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
+                            Toast.makeText(requireContext(), "Successfully Join Tim [$roomId]!", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         // 채팅방이 존재하지 않는 경우
@@ -118,17 +122,21 @@ class RoomJoinFragment : Fragment() {
                 } catch (e: Exception) {
                     // Firebase 작업 중 발생하는 예외 처리
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Firebase 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Firebase error: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             editCode.text.clear()
+
         }
 
-
-
         return v
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        job?.cancel() // Cancel the coroutine when the view is destroyed
     }
 
     companion object {

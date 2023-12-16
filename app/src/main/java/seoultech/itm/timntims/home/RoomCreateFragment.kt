@@ -1,5 +1,6 @@
 package seoultech.itm.timntims.home
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -19,6 +20,12 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.adapter.SetUpFragmentAdapter
 import seoultech.itm.timntims.model.Chat
@@ -37,16 +44,33 @@ class RoomCreateFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+    private var job: Job? = null
 
     private lateinit var database: FirebaseDatabase
     private lateinit var databaseReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
     fun setFireBase(database: FirebaseDatabase, databaseReference: DatabaseReference, auth: FirebaseAuth) {
-        this.database = FirebaseDatabase.getInstance()
+        this.database = database
         this.databaseReference = databaseReference
         this.auth = auth
     }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        Log.d("ITM", "RoomCreateFragement onAttach")
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        Log.d("ITM", "RoomCreateFragement onDetatch")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("ITM", "RoomCreateFragement onDestroy")
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +78,7 @@ class RoomCreateFragment : Fragment() {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+        Log.d("ITM", "RoomCreateFragement onCreate")
     }
 
     override fun onCreateView(
@@ -61,37 +86,52 @@ class RoomCreateFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val v: View = inflater.inflate(R.layout.fragment_room_create, container, false)
-
+        Log.d("ITM", "RoomCreateFragement onCreateView")
         val editName = v.findViewById<EditText>(R.id.editTextRoomName)
         val buttonCreate = v.findViewById<Button>(R.id.buttonRoomCreate)
 
 
-        buttonCreate.setOnClickListener{
+        buttonCreate.setOnClickListener {
             val currentUserID = auth.currentUser?.uid
             val chatName = editName.text.toString()
             val currentTimeInMillis = System.currentTimeMillis()
             val roomId = generateRandomString(8)
 
-            Log.d("ITM", "$currentUserID")
+            job = CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val newChat = Chat(roomId, chatName, currentTimeInMillis, false)
 
-            var newChat = Chat(roomId, chatName, currentTimeInMillis, false)
+                    databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat).await()
+                    if (currentUserID != null) {
+                        databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
+                        databaseReference.child("chat_rooms/$roomId").setValue(true).await()
+                        databaseReference.child("messages/$roomId").setValue(true).await()
+                    }
 
-            Log.d("ITM", "$newChat")
-            databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat) // 생성된 채팅방 아이디를 user의 rooms에 저장
-
-
-            if (currentUserID != null) {
-                databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true) // chat_member에 해당 roomId의 멤버에 uid 추가
+                    withContext(Dispatchers.Main) {
+                        Log.d("RoomCreateFragment", "Room creation successful")
+                        activity?.let {
+                            Toast.makeText(it, "New Tim '$chatName:$roomId' is Created", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        activity?.let {
+                            Toast.makeText(it, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             }
-
-            databaseReference.child("chat_rooms/$roomId").setValue(true) // chat_rooms에 room id 추가
-
-            databaseReference.child("messages/$roomId").setValue(true) // messages에 room id 추가
 
             editName.text.clear()
         }
 
         return v
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        job?.cancel() // Cancel the coroutine when the view is destroyed
     }
 
     private fun generateRandomString(length: Int): String {
