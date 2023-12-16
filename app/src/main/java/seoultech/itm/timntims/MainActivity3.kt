@@ -43,6 +43,7 @@ import java.io.IOException
 
 
 
+
 class MainActivity3 : AppCompatActivity() {
     private lateinit var binding: ActivityMain3Binding
     private val messageList = mutableListOf<ChatItem>() // Non-nullable list
@@ -51,6 +52,10 @@ class MainActivity3 : AppCompatActivity() {
     private var messageCount = 0
     private var messagesProcessed = 0
     private var newMessageCount = 0
+
+    val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+    val databaseReference: DatabaseReference = database.reference
+
     //GPT 톡방 연결을 위한 변수
     private val REQUEST_CODE = 1
     private val PICK_IMAGE_REQUEST = 2
@@ -64,6 +69,9 @@ class MainActivity3 : AppCompatActivity() {
             message?.let {
                 // Use the 'message' here
                 addResponse(message)
+
+                val currentTimeInMillis = getCurrentTimeString()
+                databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"gpt"))
             }
         }
     }
@@ -173,30 +181,12 @@ class MainActivity3 : AppCompatActivity() {
                 else{
                     addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
 
-                    //sadasd
-                    val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-                    val databaseReference: DatabaseReference = database.reference
-
-
                     val currentTimeInMillis = getCurrentTimeString()
-
-
-//                    databaseReference.child("firstmessage/$currentUserID/").setValue(SendMessage)
-                    //original
-                    //val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
-                    //newChildRef.setValue(SendMessage)
-
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId))
+                    databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
                 }
 
 
                 binding.etMsg.text.clear()
-
-                //val ChatItem.TYPE_MESSAGE_SENT = 0
-                //val ChatItem.TYPE_MESSAGE_RECEIVED = 1
-                //val ChatItem.TYPE_IMAGE_SENT = 2
-                //val ChatItem.TYPE_IMAGE_RECEIVED = 3
-
 
                 binding.tvWelcome.visibility = View.GONE
             }
@@ -221,6 +211,8 @@ class MainActivity3 : AppCompatActivity() {
         val summary = textSummarizer.summarize(summarizedGptResponse, 3)
         addResponse(summary)
 
+        val currentTimeInMillis = getCurrentTimeString()
+        databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"sum", chatId))
     }
     private fun addToChat(message: String, sentBy: Int) {
         // Add to chat and update UI on the main thread
@@ -251,13 +243,17 @@ class MainActivity3 : AppCompatActivity() {
                             val message = snapshot.getValue(MessageOnFirebase::class.java)
                             message?.let {
                                 it.contents?.let { contents ->
-                                    if (it.authorID != currentUserID){
+                                    if(it.authorID == "GPT" || it.authorID == "SummarizerDeeplearing" ){
+
+                                    }
+                                    else if (it.authorID != currentUserID){
                                         addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
                                     }
                                 }
-                            }    
+                            }
                         }
                         newMessageCount++
+
                     }
                 }
             }

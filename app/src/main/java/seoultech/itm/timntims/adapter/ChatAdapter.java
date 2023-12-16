@@ -30,6 +30,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
 import org.pytorch.IValue;
 import org.pytorch.LiteModuleLoader;
 import org.pytorch.MemoryFormat;
@@ -115,10 +123,35 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder2.right_image_view.setVisibility(View.GONE);
                 imageHolder2.left_image_view.setVisibility(View.VISIBLE);
 
-//                ImageItem image2 = (ImageItem) chatItem;
-                imageHandler.downloadImage(imageHolder2.left_image_item);
-//                imageHolder2.left_image_item.setImageURI(image2.getUri());
+                //ImageItem image2 = (ImageItem) chatItem;
 
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("photos/dog.jpg");
+
+                File localFile = null;
+                try {
+                    localFile = File.createTempFile("images", "jpg");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                File finalLocalFile = localFile;
+                storageReference.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        // Local temp file has been created, use this file to load the image
+
+                        // Assuming imageHolder2.left_image_item is your ImageView and you've a proper reference to it
+                        Glide.with(context) // Replace 'context' with your actual context
+                                .load(finalLocalFile)
+                                .into(imageHolder2.left_image_item);
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle any errors
+                    }
+                });
 
                 break;
         }
