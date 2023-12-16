@@ -207,7 +207,6 @@ class MainActivity3 : AppCompatActivity() {
 
                 binding.etMsg.text.clear()
 
-                binding.tvWelcome.visibility = View.GONE
             }
         }
     }
