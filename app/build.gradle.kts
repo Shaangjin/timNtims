@@ -103,12 +103,12 @@
         implementation ("joda-time:joda-time:2.10.13")
 
         implementation ("com.applandeo:material-calendar-view:1.9.0-rc04")
-//        implementation ("com.github.prolificinteractive:material-calendarview:2.0.1")
+        // implementation ("com.github.prolificinteractive:material-calendarview:2.0.1")
 
         implementation("androidx.room:room-runtime:2.6.1")
         annotationProcessor("androidx.room:room-compiler:2.6.1")
-        implementation ("androidx.room:room-ktx:2.3.0")
         kapt("androidx.room:room-compiler:2.6.1")
+        implementation ("androidx.room:room-ktx:2.3.0")
 
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0-RC")
 

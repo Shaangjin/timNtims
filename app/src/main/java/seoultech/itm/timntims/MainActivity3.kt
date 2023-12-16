@@ -33,6 +33,7 @@ import org.pytorch.MemoryFormat
 import org.pytorch.Module
 import org.pytorch.torchvision.TensorImageUtils
 import seoultech.itm.timntims.adapter.ChatAdapter
+import seoultech.itm.timntims.calendar.LocalCalendarActivity
 import seoultech.itm.timntims.databinding.ActivityMain3Binding
 import seoultech.itm.timntims.model.ChatItem
 import seoultech.itm.timntims.model.ImageItem
@@ -174,7 +175,7 @@ class MainActivity3 : AppCompatActivity() {
 
         binding.btnsendcalendar.setOnClickListener {
             // Create the intent to start MainActivity4
-            val intent = Intent(this, CalendarActivity::class.java)
+            val intent = Intent(this, LocalCalendarActivity::class.java)
             // Start MainActivity4 and expect a result back
             startForResult.launch(intent)
         }

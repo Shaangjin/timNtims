@@ -114,8 +114,8 @@ class CalendarActivity : AppCompatActivity(),  EasyPermissions.PermissionCallbac
 
         binding.btnsendcalendar.setOnClickListener {
             // Create the intent to start MainActivity4
-            val intent = Intent(this, MainActivity4::class.java)
-            // Start MainActivity4 and expect a result back
+            val intent = Intent(this, MainActivity3::class.java)
+            // Start MainActivity3 and expect a result back
             startActivity(intent)
         }
 
