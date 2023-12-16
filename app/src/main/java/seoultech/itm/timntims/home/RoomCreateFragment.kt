@@ -28,7 +28,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.adapter.SetUpFragmentAdapter
-import seoultech.itm.timntims.model.Chat
+import seoultech.itm.timntims.model.RoomItem
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -99,7 +99,7 @@ class RoomCreateFragment : Fragment() {
 
             job = CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val newChat = Chat(roomId, chatName, currentTimeInMillis, false)
+                    val newChat = RoomItem(roomId, chatName, currentTimeInMillis, false)
 
                     databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat).await()
                     if (currentUserID != null) {

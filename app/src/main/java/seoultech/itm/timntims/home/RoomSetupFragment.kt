@@ -20,7 +20,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import seoultech.itm.timntims.adapter.SetUpFragmentAdapter
-import seoultech.itm.timntims.model.Chat
+import seoultech.itm.timntims.model.RoomItem
 
 
 /**

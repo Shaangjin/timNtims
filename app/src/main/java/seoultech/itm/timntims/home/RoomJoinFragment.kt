@@ -27,7 +27,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.adapter.SetUpFragmentAdapter
-import seoultech.itm.timntims.model.Chat
+import seoultech.itm.timntims.model.RoomItem
 import kotlin.coroutines.coroutineContext
 
 // TODO: Rename parameter arguments, choose names that match
@@ -104,7 +104,7 @@ class RoomJoinFragment : Fragment() {
                         } else {
                             // 채팅방에 가입하지 않은 경우
                             val currentTimeInMillis = System.currentTimeMillis()
-                            val newChat = Chat(roomId, chatCode, currentTimeInMillis, false)
+                            val newChat = RoomItem(roomId, chatCode, currentTimeInMillis, false)
 
                             // 사용자의 rooms에 채팅방 정보 저장
                             userRoomsReference.child(roomId).setValue(newChat).await()

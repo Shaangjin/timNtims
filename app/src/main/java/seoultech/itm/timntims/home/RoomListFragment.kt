@@ -8,20 +8,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.getValue
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
-import org.w3c.dom.Comment
 import seoultech.itm.timntims.MainActivity3
 import seoultech.itm.timntims.R
-import seoultech.itm.timntims.model.Chat
+import seoultech.itm.timntims.adapter.RoomListAdapter
+import seoultech.itm.timntims.model.RoomItem
 
 /**
  * A simple [Fragment] subclass.
@@ -37,6 +37,10 @@ class RoomListFragment : Fragment() {
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val databaseReference: DatabaseReference = database.reference
     private val user = Firebase.auth.currentUser
+
+    private lateinit var roomsRecyclerView: RecyclerView
+    private lateinit var roomListAdapter: RoomListAdapter
+    private var roomsList = ArrayList<RoomItem>()
 
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -54,13 +58,13 @@ class RoomListFragment : Fragment() {
 
     }
 
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-
-
         val v = inflater.inflate(R.layout.fragment_room_list, container, false)
         tmpChatRoomBtn = v.findViewById(R.id.tmpChatRoom)
 
@@ -69,7 +73,38 @@ class RoomListFragment : Fragment() {
             startActivity(intent)
         }
 
+        roomsRecyclerView = v.findViewById(R.id.roomListRecyclerView)
+        roomListAdapter = RoomListAdapter(roomsList)
+        roomsRecyclerView.adapter = roomListAdapter
+        roomsRecyclerView.layoutManager = LinearLayoutManager(context)
+
+        loadRooms()
+
         return v
+    }
+
+    private fun loadRooms() {
+        val userId = user?.uid
+        if (userId != null) {
+            databaseReference.child("users").child(userId).child("rooms")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        roomsList.clear()
+                        for (snapshot in dataSnapshot.children) {
+                            val room = snapshot.getValue(RoomItem::class.java)
+                            room?.let { roomsList.add(it) }
+                        }
+                        roomListAdapter.notifyDataSetChanged()
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        Log.w(TAG, "loadRooms:onCancelled", databaseError.toException())
+                    }
+                })
+        } else {
+            // userID가 null일 때 처리 로직
+            Log.e(TAG, "User ID is null")
+        }
     }
 
     companion object {
