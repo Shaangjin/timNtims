@@ -5,14 +5,17 @@
         android:id="@+id/first"
         app:showAsAction="ifRoom"
         android:enabled="true"
-        android:title="첫번째" />
+        android:title="SetUp"
+        android:icon="@drawable/baseline_add_comment_24"/>
     <item
         android:id="@+id/second"
         app:showAsAction="ifRoom"
-        android:title="두번째" />
+        android:title="MyTim"
+        android:icon="@drawable/baseline_chat_24"/>
     <item
         android:id="@+id/third"
         app:showAsAction="ifRoom"
         android:enabled="true"
-        android:title="세번째" />
+        android:title="Setting"
+        android:icon="@drawable/baseline_settings_24"/>
 </menu>

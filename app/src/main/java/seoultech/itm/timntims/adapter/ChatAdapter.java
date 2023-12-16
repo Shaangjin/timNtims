@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import seoultech.itm.timntims.ImageClassification;
+import seoultech.itm.timntims.ImageHandler;
 import seoultech.itm.timntims.R;
 import seoultech.itm.timntims.model.ChatItem;
 import seoultech.itm.timntims.model.ImageItem;
@@ -30,6 +30,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
 import org.pytorch.IValue;
 import org.pytorch.LiteModuleLoader;
 import org.pytorch.MemoryFormat;
@@ -41,6 +49,7 @@ import java.io.IOException;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<ChatItem> chatItems;
+    private ImageHandler imageHandler ;
     private Context context;
     public ChatAdapter(Context context, List<ChatItem> chatItems) {
         this.context = context;
@@ -102,14 +111,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder.right_image_view.setVisibility(View.VISIBLE);
 
                 ImageItem image = (ImageItem) chatItem;
-                Bitmap bitmap;
-                try {
-                    bitmap = BitmapFactory.decodeStream(context.getAssets().open(image.getUrl()));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
 
-                imageHolder.right_image_item.setImageBitmap(bitmap);
+                imageHolder.right_image_item.setImageURI(image.getUri());
 
 
                 break;
@@ -120,16 +123,35 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder2.right_image_view.setVisibility(View.GONE);
                 imageHolder2.left_image_view.setVisibility(View.VISIBLE);
 
-                ImageItem image2 = (ImageItem) chatItem;
-                Bitmap bitmap2;
+                //ImageItem image2 = (ImageItem) chatItem;
+
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("photos/dog.jpg");
+
+                File localFile = null;
                 try {
-                    bitmap2 = BitmapFactory.decodeStream(context.getAssets().open(image2.getUrl()));
+                    localFile = File.createTempFile("images", "jpg");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
-                imageHolder2.left_image_item.setImageBitmap(bitmap2);
+                File finalLocalFile = localFile;
+                storageReference.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        // Local temp file has been created, use this file to load the image
 
+                        // Assuming imageHolder2.left_image_item is your ImageView and you've a proper reference to it
+                        Glide.with(context) // Replace 'context' with your actual context
+                                .load(finalLocalFile)
+                                .into(imageHolder2.left_image_item);
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle any errors
+                    }
+                });
 
                 break;
         }
