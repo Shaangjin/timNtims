@@ -2,13 +2,18 @@ package seoultech.itm.timntims.home
 
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.ktx.auth
@@ -23,6 +28,8 @@ import seoultech.itm.timntims.MainActivity3
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.adapter.RoomListAdapter
 import seoultech.itm.timntims.model.RoomItem
+import androidx.recyclerview.widget.DividerItemDecoration
+
 
 /**
  * A simple [Fragment] subclass.
@@ -47,8 +54,6 @@ class RoomListFragment : Fragment(), RoomListAdapter.OnRoomItemClickListener {
     private var param1: String? = null
     private var param2: String? = null
 
-    private lateinit var tmpChatRoomBtn: Button //temporary button for chatting room
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,12 +70,6 @@ class RoomListFragment : Fragment(), RoomListAdapter.OnRoomItemClickListener {
     ): View? {
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_room_list, container, false)
-        tmpChatRoomBtn = v.findViewById(R.id.tmpChatRoom)
-
-        tmpChatRoomBtn.setOnClickListener {
-            val intent = Intent(requireContext(), MainActivity3::class.java)
-            startActivity(intent)
-        }
 
         roomsRecyclerView = v.findViewById(R.id.roomListRecyclerView)
         roomListAdapter = RoomListAdapter(roomsList, this)
@@ -80,6 +79,72 @@ class RoomListFragment : Fragment(), RoomListAdapter.OnRoomItemClickListener {
         loadRooms()
 
         return v
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val dividerItemDecoration = DividerItemDecoration(roomsRecyclerView.context, LinearLayoutManager.VERTICAL)
+        roomsRecyclerView.addItemDecoration(dividerItemDecoration)
+
+        val swipeToDeleteCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val roomToDelete = roomsList[position]
+
+                // Delete room from Firebase using chatId
+                roomToDelete.chatId?.let { deleteRoomFromFirebase(it) }
+
+                // Remove item from list and notify adapter
+                roomsList.removeAt(position)
+                roomListAdapter.notifyItemRemoved(position)
+            }
+
+            override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+
+                val itemView = viewHolder.itemView
+                val background = ColorDrawable()
+                val backgroundColor = Color.argb(255, (255 + dX / 4).toInt().coerceAtLeast(0), 0, 0) // Becomes more red as item is swiped left
+
+                background.color = backgroundColor
+                background.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
+                background.draw(c)
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
+        itemTouchHelper.attachToRecyclerView(roomsRecyclerView)
+    }
+
+    private fun deleteRoomFromFirebase(chatId: String) {
+        val userId = user?.uid
+        if (userId != null) {
+            val userRoomsRef = databaseReference.child("users").child(userId).child("rooms").child(chatId)
+            val chatMembersRef = databaseReference.child("chat_members").child(chatId).child(userId)
+
+            userRoomsRef.removeValue().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    chatMembersRef.removeValue().addOnCompleteListener { task2 ->
+                        if (task2.isSuccessful) {
+                            // Show Toast message when both deletions are successful
+                            activity?.runOnUiThread {
+                                Toast.makeText(requireContext(), "Room successfully deleted", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } else {
+                    // Handle failure
+                    Log.e(TAG, "Failed to delete room: ${task.exception?.message}")
+                }
+            }
+        } else {
+            Log.e(TAG, "User ID is null")
+        }
     }
 
     private fun loadRooms() {
