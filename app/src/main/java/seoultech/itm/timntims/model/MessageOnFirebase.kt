@@ -15,8 +15,8 @@ internal class MessageOnFirebase {
 
 
     private constructor()
-    constructor(author: String?, text: String?, date:String?, dataType:String?) {
-        this.authorID = author
+    constructor(authorID: String?, text: String?, date:String?, dataType:String?) {
+        this.authorID = authorID
         this.contents = text
         this.date = date
         this.dataType = dataType
