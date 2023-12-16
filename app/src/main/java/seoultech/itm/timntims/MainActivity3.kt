@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,6 +53,7 @@ class MainActivity3 : AppCompatActivity() {
     private var messageCount = 0
     private var messagesProcessed = 0
     private var newMessageCount = 0
+    private lateinit var chatId: String
 
     val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     val databaseReference: DatabaseReference = database.reference
@@ -61,20 +63,21 @@ class MainActivity3 : AppCompatActivity() {
     private val PICK_IMAGE_REQUEST = 2
     private lateinit var textSummarizer: TextSummarizer
 
-    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            // Extract the data from the result intent
-            val data: Intent? = result.data
-            val message = data?.getStringExtra("message_key")
-            message?.let {
-                // Use the 'message' here
-                addResponse(message)
-
-                val currentTimeInMillis = getCurrentTimeString()
-                databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"gpt"))
-            }
-        }
-    }
+    private lateinit var startForResult : ActivityResultLauncher<Intent>
+//    = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//        if (result.resultCode == Activity.RESULT_OK) {
+//            // Extract the data from the result intent
+//            val data: Intent? = result.data
+//            val message = data?.getStringExtra("message_key")
+//            message?.let {
+//                // Use the 'message' here
+//                addResponse(message)
+//
+//                val currentTimeInMillis = getCurrentTimeString()
+//                databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"gpt", chatId))
+//            }
+//        }
+//    }
 
     val auth = Firebase.auth
 
@@ -87,6 +90,21 @@ class MainActivity3 : AppCompatActivity() {
         setContentView(binding.root)
 
         val chatId = intent.getStringExtra("chatId") ?: "0000" // Replace 'defaultRoomId' with a default value
+
+        startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                // Extract the data from the result intent
+                val data: Intent? = result.data
+                val message = data?.getStringExtra("message_key")
+                message?.let {
+                    // Use the 'message' here
+                    //addResponse(message)
+
+                    val currentTimeInMillis = getCurrentTimeString()
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"gpt", chatId))
+                }
+            }
+        }
 
         //TextSum
         textSummarizer = TextSummarizer(this)
@@ -168,7 +186,7 @@ class MainActivity3 : AppCompatActivity() {
 
                 //Summarize Function
                 if(SendMessage =="summarize"){
-                    summarizeGptResponse()
+                    summarizeGptResponse(chatId)
 
                 }else if (SendMessage=="glide"){
                     messageList.add(ImageItem(ChatItem.TYPE_IMAGE_RECEIVED))
@@ -182,7 +200,7 @@ class MainActivity3 : AppCompatActivity() {
                     addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
 
                     val currentTimeInMillis = getCurrentTimeString()
-                    databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId))
                 }
 
 
@@ -200,7 +218,7 @@ class MainActivity3 : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         return dateFormat.format(Date())
     }
-    private fun summarizeGptResponse(){
+    private fun summarizeGptResponse(chatId: String){
         var summarizedGptResponse = ""
         messageList.forEach{
             if(it.getType() == ChatItem.TYPE_MESSAGE_RECEIVED ){
@@ -209,7 +227,7 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
         val summary = textSummarizer.summarize(summarizedGptResponse, 3)
-        addResponse(summary)
+        // addResponse(summary)
 
         val currentTimeInMillis = getCurrentTimeString()
         databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"sum", chatId))
@@ -243,8 +261,8 @@ class MainActivity3 : AppCompatActivity() {
                             val message = snapshot.getValue(MessageOnFirebase::class.java)
                             message?.let {
                                 it.contents?.let { contents ->
-                                    if(it.authorID == "GPT" || it.authorID == "SummarizerDeeplearing" ){
-
+                                    if(it.authorID == "GPT" || it.authorID == "SummarizerDeeplearing") {
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
                                     }
                                     else if (it.authorID != currentUserID){
                                         addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
