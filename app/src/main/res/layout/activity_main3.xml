@@ -77,7 +77,16 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/gpticon" />
+                android:src="@drawable/image" />
+
+            <ImageButton
+                android:id="@+id/share"
+                android:layout_width="84dp"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/noti" />
 
         </LinearLayout>
 
