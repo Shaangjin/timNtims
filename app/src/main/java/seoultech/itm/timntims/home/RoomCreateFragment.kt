@@ -44,33 +44,29 @@ class RoomCreateFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    private var job: Job? = null
 
     private lateinit var database: FirebaseDatabase
     private lateinit var databaseReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
+
+    private var job: Job? = null
+    private var listener: RoomActionListener? = null
+
+    interface RoomActionListener {
+        fun onRoomAdded()
+    }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is RoomActionListener) {
+            listener = context
+        }
+    }
 
     fun setFireBase(database: FirebaseDatabase, databaseReference: DatabaseReference, auth: FirebaseAuth) {
         this.database = database
         this.databaseReference = databaseReference
         this.auth = auth
     }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        Log.d("ITM", "RoomCreateFragement onAttach")
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        Log.d("ITM", "RoomCreateFragement onDetatch")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d("ITM", "RoomCreateFragement onDestroy")
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,33 +93,40 @@ class RoomCreateFragment : Fragment() {
             val currentTimeInMillis = System.currentTimeMillis()
             val roomId = generateRandomString(8)
 
-            job = CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val newChat = RoomItem(roomId, chatName, currentTimeInMillis, false)
+            if (chatName.isNullOrEmpty()) {
+                activity?.let {
+                    Toast.makeText(it, "Please set Tim name", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                job = CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val newChat = RoomItem(roomId, chatName, currentTimeInMillis, false)
 
-                    databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat).await()
-                    if (currentUserID != null) {
-                        databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
-                        databaseReference.child("chat_rooms/$roomId").setValue(true).await()
-                        databaseReference.child("messages/$roomId").setValue(true).await()
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        Log.d("RoomCreateFragment", "Room creation successful")
-                        activity?.let {
-                            Toast.makeText(it, "New Tim '$chatName:$roomId' is Created", Toast.LENGTH_LONG).show()
+                        databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat).await()
+                        if (currentUserID != null) {
+                            databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
+                            databaseReference.child("chat_rooms/$roomId").setValue(true).await()
+                            databaseReference.child("messages/$roomId").setValue(true).await()
                         }
-                    }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        activity?.let {
-                            Toast.makeText(it, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                        withContext(Dispatchers.Main) {
+                            Log.d("RoomCreateFragment", "Room creation successful")
+                            listener?.onRoomAdded()
+                            activity?.let {
+                                Toast.makeText(it, "New Tim '$chatName:$roomId' is Created", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            activity?.let {
+                                Toast.makeText(it, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
-            }
 
-            editName.text.clear()
+                editName.text.clear()
+            }
         }
 
         return v

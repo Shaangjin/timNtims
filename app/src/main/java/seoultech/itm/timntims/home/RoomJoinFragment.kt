@@ -1,5 +1,6 @@
 package seoultech.itm.timntims.home
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -50,6 +51,18 @@ class RoomJoinFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
 
     private var job: Job? = null
+    private var listener: RoomActionListener? = null
+
+    interface RoomActionListener {
+        fun onRoomAdded()
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is RoomActionListener) {
+            listener = context
+        }
+    }
 
     fun setFireBase(database: FirebaseDatabase, databaseReference: DatabaseReference, auth: FirebaseAuth) {
         this.database = database
@@ -117,6 +130,7 @@ class RoomJoinFragment : Fragment() {
                         // 채팅방이 존재하지 않는 경우
                         withContext(Dispatchers.Main) {
                             Toast.makeText(requireContext(), "Please put an exact chat room code.", Toast.LENGTH_SHORT).show()
+                            listener?.onRoomAdded()
                         }
                     }
                 } catch (e: Exception) {

@@ -3,6 +3,7 @@ package seoultech.itm.timntims.home
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.navigation.NavigationBarView
 import com.google.firebase.auth.ktx.auth
@@ -12,7 +13,7 @@ import com.google.firebase.ktx.Firebase
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.sign.SignInActivity
 
-class HomeActivity : AppCompatActivity(), SettingFragment.Callbacks {
+class HomeActivity : AppCompatActivity(), SettingFragment.Callbacks, RoomCreateFragment.RoomActionListener, RoomJoinFragment.RoomActionListener {
 
     private val roomSetupFragment by lazy { RoomSetupFragment() }
     private val roomListFragment by lazy { RoomListFragment() }
@@ -23,6 +24,12 @@ class HomeActivity : AppCompatActivity(), SettingFragment.Callbacks {
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 //    private val databaseReference: DatabaseReference = database.reference
 //    private val auth = Firebase.auth
+
+    override fun onRoomAdded() {
+        // Update the icon on the second item of BottomNavigationView
+        val menuItem = bottomNavigationView.menu.findItem(R.id.second)
+        menuItem.icon = ContextCompat.getDrawable(this, R.drawable.baseline_mark_unread_chat_alt_24) // replace 'your_new_icon' with your icon resource
+    }
 
     override fun finishHomeActivity() { // Override callback function in UserProfileFragment
         val intent = Intent(this, SignInActivity::class.java)
@@ -48,6 +55,7 @@ class HomeActivity : AppCompatActivity(), SettingFragment.Callbacks {
                 }
                 R.id.second -> {
                     changeFragment(roomListFragment, "RoomListFragment")
+                    item.icon = ContextCompat.getDrawable(this, R.drawable.baseline_chat_24) // 원래 아이콘으로 변경
                     true
                 }
                 R.id.third -> {

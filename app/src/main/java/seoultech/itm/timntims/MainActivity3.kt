@@ -112,7 +112,7 @@ class MainActivity3 : AppCompatActivity() {
 
                 initialDataLoaded = true
                 initialLoadRef.removeEventListener(this)
-                listenForNewMessages("chatId")
+                listenForNewMessages(chatId)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -186,7 +186,7 @@ class MainActivity3 : AppCompatActivity() {
                     //val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
                     //newChildRef.setValue(SendMessage)
 
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId))
                 }
 
 
@@ -258,7 +258,6 @@ class MainActivity3 : AppCompatActivity() {
                             }    
                         }
                         newMessageCount++
-
                     }
                 }
             }

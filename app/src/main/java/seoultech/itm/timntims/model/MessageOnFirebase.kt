@@ -15,11 +15,11 @@ internal class MessageOnFirebase {
 
 
     private constructor()
-    constructor(author: String?, text: String?, date:String?, dataType:String?) {
+    constructor(author: String?, text: String?, date:String?, dataType:String?, roomID:String?) {
         this.authorID = author
         this.contents = text
         this.date = date
         this.dataType = dataType
-        this.chatroomID = "roomExampleFirst"
+        this.chatroomID = roomID
     }
 }
