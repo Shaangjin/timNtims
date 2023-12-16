@@ -6,4 +6,6 @@ data class User(
     val firstName: String,
     val lastName: String,
     val profileImage: String?
-)
+) {
+    constructor() : this("", "", "", "", null)
+}

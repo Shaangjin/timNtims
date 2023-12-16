@@ -124,7 +124,9 @@ class RoomJoinFragment : Fragment() {
 
                             // 사용자를 채팅 멤버로 추가
                             databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
-                            Toast.makeText(requireContext(), "Successfully Join Tim [$roomId]!", Toast.LENGTH_SHORT).show()
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(requireContext(), "Successfully Join Tim [$roomId]!", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     } else {
                         // 채팅방이 존재하지 않는 경우

@@ -118,4 +118,7 @@
 
         // Firebase
         implementation ("com.google.firebase:firebase-storage-ktx")
+
+        implementation ("com.github.yalantis:ucrop:2.2.6")
+
     }
