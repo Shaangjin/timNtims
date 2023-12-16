@@ -10,11 +10,14 @@ import androidx.room.Update
 
 @Dao
 interface EventDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(todoItem: TodoItem)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOrUpdate(todoItem: TodoItem)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertList(todoItemList : MutableList<TodoItem>)
 
     @Insert
-    suspend fun insertList(todoItemList : MutableList<TodoItem>)
+    suspend fun insert(todoItem: TodoItem)
 
     @Delete
     fun delete(todoItem : TodoItem)

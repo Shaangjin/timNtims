@@ -6,10 +6,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "EventLog")
 data class TodoItem(
-    @PrimaryKey(autoGenerate = true) val eventID : Long = 0,
-    @ColumnInfo(name= "Date") val date : Long,
-    @ColumnInfo(name= "Description") val description : String,
-    @ColumnInfo(name= "ChatRoomID") val chatRoomID : String,
-    @ColumnInfo(name= "SenderID") val senderID : String,
-    @ColumnInfo(name= "LogType") val logType : Int
+    @PrimaryKey(autoGenerate = false) val eventID : String,
+    @ColumnInfo(name= "authorID") val authorID : String?,
+    @ColumnInfo(name= "contents") val contents : String,
+    @ColumnInfo(name= "date") val date : String,
+    @ColumnInfo(name= "dataType") val dataType : String,
+    @ColumnInfo(name= "chatRoomID") val chatRoomID: String
 )
