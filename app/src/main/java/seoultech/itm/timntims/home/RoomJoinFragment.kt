@@ -86,6 +86,7 @@ class RoomJoinFragment : Fragment() {
     ): View? {
         val v: View = inflater.inflate(R.layout.fragment_room_join, container, false)
 
+        val editRoomName = v.findViewById<EditText>(R.id.editRoomName)
         val editCode = v.findViewById<EditText>(R.id.editTextRoomCode)
         val buttonJoin = v.findViewById<Button>(R.id.buttonRoomJoin)
 
@@ -94,10 +95,12 @@ class RoomJoinFragment : Fragment() {
 
         buttonJoin.setOnClickListener {
             val currentUserID = auth.currentUser?.uid
+            val RoomName = editRoomName.text.toString() // 사용자가 입력한 채팅방 이름
             val chatCode = editCode.text.toString() // 사용자가 입력한 채팅방 코드
 
-            // 백그라운드 스레드에서 Firebase 작업을 수행하기 위해 코루틴을 사용합니다.
-            // CoroutineScope(Dispatchers.IO).launch 블록 내에서 Firebase 작업을 실행합니다.
+
+            // 백그라운드 스레드에서 Firebase 작업을 수행하기 위해 코루틴 사용
+            // CoroutineScope(Dispatchers.IO).launch 블록 내에서 Firebase 작업을 실행
             job = CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val chatRoomsReference = databaseReference.child("chat_rooms")
@@ -112,12 +115,12 @@ class RoomJoinFragment : Fragment() {
                         if (roomSnapshot.exists()) {
                             // 이미 채팅방에 가입한 경우
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(requireContext(), "You already belongs to [$roomId].", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "You already belongs to\n[$roomId].", Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             // 채팅방에 가입하지 않은 경우
                             val currentTimeInMillis = System.currentTimeMillis()
-                            val newChat = RoomItem(roomId, chatCode, currentTimeInMillis, false)
+                            val newChat = RoomItem(roomId, RoomName, currentTimeInMillis, false)
 
                             // 사용자의 rooms에 채팅방 정보 저장
                             userRoomsReference.child(roomId).setValue(newChat).await()

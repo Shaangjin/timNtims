@@ -11,8 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:inputType="text"
+        android:gravity="center_horizontal"
         android:hint="Name Your Tim"
+        android:inputType="text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,4 +30,41 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextRoomName" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="1. Set Tim name\n2. Click Create button\n3. Share code with teammates"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/editTextRoomName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.62" />
+
+    <TextView
+        android:id="@+id/textRoomCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:hint="Room Code"
+        android:textColorHint="@color/red"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonRoomCreate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextRoomName" />
+
+    <ImageButton
+        android:id="@+id/buttonCopyCode"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:background="@color/ic_launcher_background"
+        android:src="@drawable/baseline_content_copy_24"
+        app:layout_constraintBottom_toBottomOf="@+id/textRoomCode"
+        app:layout_constraintStart_toEndOf="@+id/textRoomCode"
+        app:layout_constraintTop_toTopOf="@+id/textRoomCode" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

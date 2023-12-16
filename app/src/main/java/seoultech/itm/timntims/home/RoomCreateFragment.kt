@@ -1,5 +1,7 @@
 package seoultech.itm.timntims.home
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.viewpager2.widget.ViewPager2
@@ -83,15 +86,23 @@ class RoomCreateFragment : Fragment() {
     ): View? {
         val v: View = inflater.inflate(R.layout.fragment_room_create, container, false)
         Log.d("ITM", "RoomCreateFragement onCreateView")
+
         val editName = v.findViewById<EditText>(R.id.editTextRoomName)
         val buttonCreate = v.findViewById<Button>(R.id.buttonRoomCreate)
+        val textRoomCode = v.findViewById<TextView>(R.id.textRoomCode)
+        val buttonCopyCode = v.findViewById<ImageButton>(R.id.buttonCopyCode)
 
+        // Set up the listener for the copy button
+        buttonCopyCode.setOnClickListener {
+            val clipboard = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Room Code", textRoomCode.text)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(requireContext(), "Room code copied to clipboard", Toast.LENGTH_SHORT).show()
+        }
 
         buttonCreate.setOnClickListener {
             val currentUserID = auth.currentUser?.uid
             val chatName = editName.text.toString()
-            val currentTimeInMillis = System.currentTimeMillis()
-            val roomId = generateRandomString(8)
 
             if (chatName.isNullOrEmpty()) {
                 activity?.let {
@@ -100,21 +111,29 @@ class RoomCreateFragment : Fragment() {
             } else {
                 job = CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        // Generate a new unique key (room ID) using push()
+                        val roomIdRef = databaseReference.child("chat_rooms").push()
+                        val roomId = roomIdRef.key ?: return@launch // Exit if the key is null
+
+                        val currentTimeInMillis = System.currentTimeMillis()
                         val newChat = RoomItem(roomId, chatName, currentTimeInMillis, false)
 
+                        // Set the new chat room under the 'chat_rooms' node
+                        roomIdRef.setValue(true).await()
+
+                        // Create and set other details under corresponding nodes
                         databaseReference.child("users/$currentUserID/rooms/$roomId/").setValue(newChat).await()
-                        if (currentUserID != null) {
-                            databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
-                            databaseReference.child("chat_rooms/$roomId").setValue(true).await()
-                            databaseReference.child("messages/$roomId").setValue(true).await()
-                        }
+                        databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
+                        databaseReference.child("messages/$roomId").setValue(true).await()
 
                         withContext(Dispatchers.Main) {
                             Log.d("RoomCreateFragment", "Room creation successful")
                             listener?.onRoomAdded()
                             activity?.let {
-                                Toast.makeText(it, "New Tim '$chatName:$roomId' is Created", Toast.LENGTH_LONG).show()
+                                Toast.makeText(it, "New Tim '$chatName:$roomId'\n is Created", Toast.LENGTH_LONG).show()
                             }
+                            // Set the room code in the TextView
+                            textRoomCode.text = roomId
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
