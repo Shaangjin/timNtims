@@ -3,11 +3,11 @@ package seoultech.itm.timntims.model;
 import android.net.Uri;
 
 public class ImageItem extends ChatItem {
-    private Uri uri;
+    private String imgName;
     private int Sentby;
 
-    public ImageItem(Uri uri, int Sentby) {
-        this.uri = uri;
+    public ImageItem(String imgName, int Sentby) {
+        this.imgName = imgName;
         this.Sentby = Sentby;
     }
     public ImageItem(int Sentby) {
@@ -16,8 +16,8 @@ public class ImageItem extends ChatItem {
     }
 
 
-    public Uri getUri() {
-        return this.uri;
+    public String getUri() {
+        return this.imgName;
     }
     public int getSentBy() {
         return this.Sentby;

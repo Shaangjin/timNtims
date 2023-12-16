@@ -53,6 +53,8 @@ class MainActivity3 : AppCompatActivity() {
     private var initialDataLoaded = false
     private var messageCount = 0
     private var messagesProcessed = 0
+    private lateinit var imgName: String
+    private lateinit var className:String
     private var newMessageCount = 0
     private lateinit var chatId: String
 
@@ -102,7 +104,7 @@ class MainActivity3 : AppCompatActivity() {
                     //addResponse(message)
 
                     val currentTimeInMillis = getCurrentTimeString()
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"gpt", chatId))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"text", chatId,""))
                 }
             }
         }
@@ -127,13 +129,25 @@ class MainActivity3 : AppCompatActivity() {
                         val message = snapshot.getValue(MessageOnFirebase::class.java)
                         message?.let {
                             it.contents?.let { contents ->
-                                if (it.authorID != currentUserID){
+                                if (it.authorID != currentUserID && it.dataType=="text"){
                                     addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
-                                }else{
+                                }else if(it.authorID == currentUserID && it.dataType=="text"){
                                     addToChat(contents, ChatItem.TYPE_MESSAGE_SENT)
+                                }else if(it.authorID == currentUserID && it.dataType=="img"){
+                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT))
+                                    binding.recyclerView.adapter?.notifyDataSetChanged()
+                                    binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+                                    //imageClassification(imageUri)
+                                }else if(it.authorID != currentUserID && it.dataType=="img"){
+                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED))
+                                    binding.recyclerView.adapter?.notifyDataSetChanged()
+                                    binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+                                    //imageClassification(imageUri)
+                            } else {
+
+                                }
                                 }
                             }
-                        }
                     //}
                 }
 
@@ -180,6 +194,17 @@ class MainActivity3 : AppCompatActivity() {
             startForResult.launch(intent)
         }
 
+        binding.share.setOnClickListener{
+            val currentTimeInMillis = getCurrentTimeString()
+            databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,imgName,currentTimeInMillis,"img", chatId,className))
+            //messageList.add(ImageItem(imageUri, ChatItem.TYPE_IMAGE_SENT))
+            //binding.recyclerView.adapter?.notifyDataSetChanged()
+            //binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+            //imageClassification(imageUri)
+
+        }
+
+
         // Send button click listener
         binding.btnsend.setOnClickListener {
             val SendMessage = binding.etMsg.text.toString().trim()
@@ -198,10 +223,9 @@ class MainActivity3 : AppCompatActivity() {
 
 
                 else{
-                    addToChat(SendMessage, ChatItem.TYPE_MESSAGE_SENT)
 
                     val currentTimeInMillis = getCurrentTimeString()
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId,""))
                 }
 
 
@@ -231,7 +255,7 @@ class MainActivity3 : AppCompatActivity() {
         // addResponse(summary)
 
         val currentTimeInMillis = getCurrentTimeString()
-        databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"sum", chatId))
+        databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"text", chatId,""))
     }
     private fun addToChat(message: String, sentBy: Int) {
         // Add to chat and update UI on the main thread
@@ -262,11 +286,24 @@ class MainActivity3 : AppCompatActivity() {
                             val message = snapshot.getValue(MessageOnFirebase::class.java)
                             message?.let {
                                 it.contents?.let { contents ->
-                                    if(it.authorID == "GPT" || it.authorID == "SummarizerDeeplearing") {
+                                    if (it.authorID != currentUserID && it.dataType == "text"){
                                         addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
-                                    }
-                                    else if (it.authorID != currentUserID){
-                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
+                                    }else if (it.authorID == currentUserID && it.dataType =="text"){
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_SENT)
+                                    }else if(it.authorID == currentUserID && it.dataType=="img"){
+                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT))
+                                        binding.recyclerView.adapter?.notifyDataSetChanged()
+                                        binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+
+                                        Toast.makeText(this@MainActivity3, it.addMaterial, Toast.LENGTH_SHORT).show()
+
+                                    }else if(it.authorID != currentUserID && it.dataType=="img"){
+                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED))
+                                        binding.recyclerView.adapter?.notifyDataSetChanged()
+                                        binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
+                                        Toast.makeText(this@MainActivity3, it.addMaterial, Toast.LENGTH_SHORT).show()
+                                    } else {
+
                                     }
                                 }
                             }
@@ -284,7 +321,7 @@ class MainActivity3 : AppCompatActivity() {
 
         newMessageRef.addValueEventListener(newMessageListener)
     }
-    private fun imageClassification(uri:Uri){
+    private fun imageClassification(uri:Uri): String {
         var bitmap: Bitmap? = null
         var module: Module? = null
         try {
@@ -321,7 +358,7 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
         val className = ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
-        showResultToast(className)
+        return className
     }
     private fun addResponse(response: String) {
         // Add response to chat from gpt response
@@ -356,23 +393,16 @@ class MainActivity3 : AppCompatActivity() {
         }
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
             val imageUri: Uri = data.data!!
-            imageHandler.uploadImage(imageUri)
+            imgName = imageUri.lastPathSegment.toString()
 
-            messageList.add(ImageItem(imageUri, ChatItem.TYPE_IMAGE_SENT))
-            binding.recyclerView.adapter?.notifyDataSetChanged()
-            binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
-            imageClassification(imageUri)
-
-            //Below code is for the counter part image, not mine
-
-
+            imageHandler.uploadImage(imageUri) { isSuccess, message ->
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity3, message, Toast.LENGTH_SHORT).show()
+                    className = imageClassification(imageUri)
+                }
+            }
 
 
-
-            //Deep learning Image Classification
-
-                //val resultClass = deepLearning.inference(SendMessage)
-                //showResultToast(resultClass)
             }
 
     }

@@ -112,20 +112,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                 ImageItem image = (ImageItem) chatItem;
 
-                imageHolder.right_image_item.setImageURI(image.getUri());
-
-
-                break;
-
-
-            case ChatItem.TYPE_IMAGE_RECEIVED:
-                ImageViewHolder imageHolder2 = (ImageViewHolder) holder;
-                imageHolder2.right_image_view.setVisibility(View.GONE);
-                imageHolder2.left_image_view.setVisibility(View.VISIBLE);
-
-                //ImageItem image2 = (ImageItem) chatItem;
-
-                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("photos/dog.jpg");
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("photos/"+image.getUri());
 
                 File localFile = null;
                 try {
@@ -143,6 +130,45 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         // Assuming imageHolder2.left_image_item is your ImageView and you've a proper reference to it
                         Glide.with(context) // Replace 'context' with your actual context
                                 .load(finalLocalFile)
+                                .into(imageHolder.right_image_item);
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle any errors
+                    }
+                });
+
+
+                break;
+
+
+            case ChatItem.TYPE_IMAGE_RECEIVED:
+                ImageViewHolder imageHolder2 = (ImageViewHolder) holder;
+                imageHolder2.right_image_view.setVisibility(View.GONE);
+                imageHolder2.left_image_view.setVisibility(View.VISIBLE);
+
+                ImageItem image2 = (ImageItem) chatItem;
+
+                StorageReference storageReference2 = FirebaseStorage.getInstance().getReference().child("photos/"+image2.getUri());
+
+                File localFile2 = null;
+                try {
+                    localFile2 = File.createTempFile("images", "jpg");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                File finalLocalFile2 = localFile2;
+                storageReference2.getFile(localFile2).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        // Local temp file has been created, use this file to load the image
+
+                        // Assuming imageHolder2.left_image_item is your ImageView and you've a proper reference to it
+                        Glide.with(context) // Replace 'context' with your actual context
+                                .load(finalLocalFile2)
                                 .into(imageHolder2.left_image_item);
 
                     }
