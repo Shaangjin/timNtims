@@ -8,8 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import seoultech.itm.timntims.R
 import seoultech.itm.timntims.model.RoomItem
 
-class RoomListAdapter(private val roomList: List<RoomItem>) :
+class RoomListAdapter(private val roomList: List<RoomItem>, private val listener: OnRoomItemClickListener) :
     RecyclerView.Adapter<RoomListAdapter.RoomViewHolder>() {
+
+    interface OnRoomItemClickListener {
+        fun onRoomItemClick(chatId: String)
+    }
 
     // ViewHolder 클래스 정의
     class RoomViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -28,6 +32,11 @@ class RoomListAdapter(private val roomList: List<RoomItem>) :
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         val roomItem = roomList[position]
         holder.titleTextView.text = roomItem.title
+
+        // Set the click listener
+        holder.itemView.setOnClickListener {
+            listener.onRoomItemClick(roomItem.chatId ?: "")
+        }
         // 여기에 클릭 리스너 등 추가 로직을 구현할 수 있습니다.
     }
 

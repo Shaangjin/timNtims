@@ -78,6 +78,7 @@ class MainActivity3 : AppCompatActivity() {
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val chatId = intent.getStringExtra("chatId") ?: "0000" // Replace 'defaultRoomId' with a default value
 
         //TextSum
         textSummarizer = TextSummarizer(this)
@@ -86,7 +87,7 @@ class MainActivity3 : AppCompatActivity() {
         imageHandler = ImageHandler()
 
         val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-        val initialLoadRef: Query = database.reference.child("messages/roomExampleFirst/")
+        val initialLoadRef: Query = database.reference.child("messages/$chatId/")
 
         val initialListener: ValueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -111,7 +112,7 @@ class MainActivity3 : AppCompatActivity() {
 
                 initialDataLoaded = true
                 initialLoadRef.removeEventListener(this)
-                listenForNewMessages()
+                listenForNewMessages("chatId")
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -185,7 +186,7 @@ class MainActivity3 : AppCompatActivity() {
                     //val newChildRef = databaseReference.child("firstmessage/WO46NUqPhqXM1Yt9hQ6TtC3okEZ2/").push()
                     //newChildRef.setValue(SendMessage)
 
-                    databaseReference.child("messages/roomExampleFirst/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text"))
                 }
 
 
@@ -238,9 +239,9 @@ class MainActivity3 : AppCompatActivity() {
         }
     }
 
-    private fun listenForNewMessages() {
+    private fun listenForNewMessages(chatId: String) {
         val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-        val newMessageRef: Query = database.reference.child("messages/roomExampleFirst/").limitToLast(1)
+        val newMessageRef: Query = database.reference.child("messages/$chatId/").limitToLast(1)
 
         val newMessageListener: ValueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {

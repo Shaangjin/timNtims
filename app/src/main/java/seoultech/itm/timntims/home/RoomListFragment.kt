@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -32,7 +33,7 @@ import seoultech.itm.timntims.model.RoomItem
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-class RoomListFragment : Fragment() {
+class RoomListFragment : Fragment(), RoomListAdapter.OnRoomItemClickListener {
 
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private val databaseReference: DatabaseReference = database.reference
@@ -58,8 +59,6 @@ class RoomListFragment : Fragment() {
 
     }
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -74,7 +73,7 @@ class RoomListFragment : Fragment() {
         }
 
         roomsRecyclerView = v.findViewById(R.id.roomListRecyclerView)
-        roomListAdapter = RoomListAdapter(roomsList)
+        roomListAdapter = RoomListAdapter(roomsList, this)
         roomsRecyclerView.adapter = roomListAdapter
         roomsRecyclerView.layoutManager = LinearLayoutManager(context)
 
@@ -86,21 +85,31 @@ class RoomListFragment : Fragment() {
     private fun loadRooms() {
         val userId = user?.uid
         if (userId != null) {
-            databaseReference.child("users").child(userId).child("rooms")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                        roomsList.clear()
-                        for (snapshot in dataSnapshot.children) {
-                            val room = snapshot.getValue(RoomItem::class.java)
-                            room?.let { roomsList.add(it) }
-                        }
-                        roomListAdapter.notifyDataSetChanged()
-                    }
+            val roomsRef = databaseReference.child("users").child(userId).child("rooms")
 
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        Log.w(TAG, "loadRooms:onCancelled", databaseError.toException())
+            roomsRef.addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val room = snapshot.getValue(RoomItem::class.java)
+                    room?.let {
+                        roomsList.add(it)
+                        roomListAdapter.notifyItemInserted(roomsList.size - 1)
                     }
-                })
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    // 필요한 경우 여기에 방 정보 변경 로직을 구현합니다.
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.w(TAG, "loadRooms:onCancelled", error.toException())
+                }
+            })
         } else {
             // userID가 null일 때 처리 로직
             Log.e(TAG, "User ID is null")
@@ -125,5 +134,12 @@ class RoomListFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun onRoomItemClick(chatId: String) {
+        val intent = Intent(requireContext(), MainActivity3::class.java).apply {
+            putExtra("chatId", chatId)
+        }
+        startActivity(intent)
     }
 }
