@@ -319,7 +319,7 @@ class MainActivity3 : AppCompatActivity() {
                             message?.let {
                                 it.contents?.let { contents ->
                                     if (it.authorID != currentUserID && it.dataType == "text"){
-                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED,"Secretary")
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED, it.authorName)
                                     }else if (it.authorID == currentUserID && it.dataType =="text"){
                                         addToChat(contents, ChatItem.TYPE_MESSAGE_SENT,it.authorName)
                                     }else if(it.authorID == currentUserID && it.dataType=="img"){
