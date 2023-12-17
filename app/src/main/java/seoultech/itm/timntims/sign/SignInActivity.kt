@@ -23,6 +23,7 @@ class SignInActivity : AppCompatActivity() {
     private lateinit var emailEdit: EditText
     private lateinit var pwdEdit: EditText
     private lateinit var signUpBtn: Button
+    private lateinit var videoView: VideoView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +35,7 @@ class SignInActivity : AppCompatActivity() {
             moveHomeActivity()
         }
 
-        val videoView = findViewById<VideoView>(R.id.videoView)
+        videoView = findViewById<VideoView>(R.id.videoView)
 
         // 비디오 파일의 경로를 설정
         val videoPath = "android.resource://$packageName/" + R.raw.video_sign_in // 비디오 파일의 이름을 여기에 넣으세요
@@ -61,6 +62,20 @@ class SignInActivity : AppCompatActivity() {
             val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Pause video when activity is paused
+        if (videoView.isPlaying) {
+            videoView.pause()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Resume video when activity comes back to the foreground
+        videoView.start()
     }
 
     private fun moveHomeActivity() {
