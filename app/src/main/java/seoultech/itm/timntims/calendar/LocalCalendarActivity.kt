@@ -5,6 +5,11 @@ package seoultech.itm.timntims.calendar
 //import com.prolificinteractive.materialcalendarview.OnDateSelectedListener
 
 import android.app.AlertDialog
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.ArrayAdapter
@@ -32,23 +37,38 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class LocalCalendarActivity : AppCompatActivity() {
+class LocalCalendarActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var calendarView: CalendarView
     val binding by lazy  { ActivityLocalCalendarBinding.inflate(layoutInflater)}
     val eventDB: EventDB by lazy { EventDB.getInstance(this)}
+    private lateinit var chatId: String // chatId를 클래스 멤버 변수로 선언
 
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
     private lateinit var databaseReferenceForEvent: DatabaseReference
-
     val auth = Firebase.auth
+
+    //sensor
+    private lateinit var sensorManager: SensorManager
+    var mLight: Sensor? = null
+    private var accelerometer: Sensor? = null
+    private var lastUpdate: Long = 0
+    private var last_x: Float = 0.0f
+    private var last_y: Float = 0.0f
+    private var last_z: Float = 0.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
 //        Log.d("ddddd", "$chatId in oncreate" )
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        //sensor
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+//        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+
 
         calendarView = binding.localCalendar
-        val chatId = intent.getStringExtra("chatId") ?: "0000"
+        chatId = intent.getStringExtra("chatId") ?: "0000"
         Log.d("ddddd", "$chatId 52")
         databaseReferenceForEvent = database.getReference("messages/$chatId")
         Log.d("ddddd", "after databaseReference")
@@ -57,6 +77,38 @@ class LocalCalendarActivity : AppCompatActivity() {
         setupDatabaseListener(chatId)
         iconOnCalendar(chatId)
     }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        val mySensor = event.sensor
+
+        if (mySensor.type == Sensor.TYPE_ACCELEROMETER) {
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
+
+            val curTime = System.currentTimeMillis()
+            if ((curTime - lastUpdate) > 100) {
+                val diffTime = (curTime - lastUpdate)
+                lastUpdate = curTime
+
+                val speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000
+
+                if (speed > SHAKE_THRESHOLD) {
+                    val chatId = intent.getStringExtra("chatId") ?: "0000"
+                    iconOnCalendar(chatId)
+                }
+
+                last_x = x
+                last_y = y
+                last_z = z
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+
+    }
+
 
 //    private fun iconOnCalendar(chatId: String){
 //        var todoListByChatID: MutableList<TodoItem> = mutableListOf()
@@ -360,6 +412,8 @@ private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoIt
         }
     }
 
+
+
 //    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
 //        lifecycleScope.launch(Dispatchers.IO) {
 //            val formattedItems = todoItems.map { todoItem ->
@@ -435,6 +489,21 @@ private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoIt
 //    }
 
 
+    companion object {
+        private const val SHAKE_THRESHOLD = 600 // 흔들림 감지 임계값
+    }
+
+    // Activity가 활성화될 때 센서 리스너 등록
+    override fun onResume() {
+        super.onResume()
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+    }
+
+    // Activity가 비활성화될 때 센서 리스너 해제
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+    }
 
 
 
