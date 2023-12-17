@@ -11,5 +11,6 @@ data class TodoItem(
     @ColumnInfo(name= "contents") val contents : String,
     @ColumnInfo(name= "date") val date : String,
     @ColumnInfo(name= "dataType") val dataType : String,
-    @ColumnInfo(name= "chatRoomID") val chatRoomID: String
+    @ColumnInfo(name= "chatRoomID") val chatRoomID: String,
+    @ColumnInfo(name= "futureTime") val futureTime: String?
 )

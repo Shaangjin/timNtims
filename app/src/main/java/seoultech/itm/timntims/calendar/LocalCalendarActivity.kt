@@ -7,8 +7,6 @@ package seoultech.itm.timntims.calendar
 import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
-import android.widget.EditText
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -38,27 +36,152 @@ class LocalCalendarActivity : AppCompatActivity() {
     val eventDB: EventDB by lazy { EventDB.getInstance(this)}
 
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-    private lateinit var databaseReference: DatabaseReference
+    private lateinit var databaseReferenceForEvent: DatabaseReference
+
     val auth = Firebase.auth
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("ddddd", "oncreate start")
+//        Log.d("ddddd", "$chatId in oncreate" )
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
         calendarView = binding.localCalendar
-
-        Log.d("ddddd", "before databaseReference")
-        databaseReference = database.getReference("messages/roomExampleFirst")
+        val chatId = intent.getStringExtra("chatId") ?: "0000"
+        Log.d("ddddd", "$chatId 52")
+        databaseReferenceForEvent = database.getReference("messages/$chatId")
         Log.d("ddddd", "after databaseReference")
-        setupCalendar()
+        clickCalendar(chatId)
         Log.d("ddddd", "before databaseListener")
-        setupDatabaseListener()
+        setupDatabaseListener(chatId)
+        iconOnCalendar(chatId)
+    }
+
+//    private fun iconOnCalendar(chatId: String){
+//        var todoListByChatID: MutableList<TodoItem> = mutableListOf()
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val dao = eventDB.eventDAO().getAll()
+//            dao.forEach {
+//                if (it.chatRoomID == chatId) {
+//                    todoListByChatID.add(it)
+//                }
+//            }
+
+//            val events: MutableList<EventDay> = ArrayList()
+//            todoListByChatID.forEach { todoItem ->
+//                Log.d("eeeee", "${todoItem.authorID}, ${todoItem.dataType}")
+//                val itemCalendar = parseDateToCalendar(todoItem.date)
+//                Log.d("eeeee", "${itemCalendar.time}")
+//                when (todoItem.dataType) {
+//                    "img" -> events.add(EventDay(itemCalendar, R.drawable.image_icon))
+//                    "text" -> {
+//                        when (todoItem.authorID) {
+//
+//                            "GPT" -> events.add(EventDay(itemCalendar, R.drawable.gpt))
+//                            "SummarizerDeeplearing" -> events.add(EventDay(itemCalendar, R.drawable.notify_icon))
+//                        }
+//                    }
+//
+//                }
+//            }
+//
+//            Log.d("eeeee", "${events.toString()}")
+//            withContext(Dispatchers.Main) {
+//
+//                calendarView.setEvents(events)
+//            }
+//        }
+
+    private fun iconOnCalendar(chatId: String) {
+        var todoListByChatID: MutableList<TodoItem> = mutableListOf()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val dao = eventDB.eventDAO().getAll()
+            dao.forEach {
+                if (it.chatRoomID == chatId) {
+                    todoListByChatID.add(it)
+                }
+            }
+
+            val eventsMap: MutableMap<Calendar, MutableList<Int>> = mutableMapOf()
+            todoListByChatID.forEach { todoItem ->
+                val itemCalendar = parseDateToCalendar(todoItem.date)
+                val icon = when {
+                    todoItem.dataType == "img" -> R.drawable.image_icon
+                    todoItem.authorID == "GPT" -> R.drawable.gpt
+                    todoItem.authorID == "SummarizerDeeplearing" -> R.drawable.notify_icon
+                    else -> null
+                }
+                if (icon != null) {
+                    eventsMap.getOrPut(itemCalendar) { mutableListOf() }.add(icon)
+                }
+            }
+
+            val events: MutableList<EventDay> = ArrayList()
+            eventsMap.forEach { (calendar, icons) ->
+                icons.forEach { icon ->
+                    events.add(EventDay(calendar, icon))
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                calendarView.setEvents(events)
+            }
+        }
     }
 
 
-    private fun setupDatabaseListener() {
-        databaseReference.addValueEventListener(object: ValueEventListener {
+
+
+
+
+//        var todoListByChatID : MutableList<TodoItem> = mutableListOf()
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val dao = eventDB.eventDAO().getAll()
+//            dao.forEach{
+//                if(it.chatRoomID == chatId){
+//                    todoListByChatID.add(it)
+//                }
+//            }
+//            Log.d("eeeee", "$todoListByChatID")
+//            val events: MutableList<EventDay> = ArrayList()
+//            todoListByChatID.forEach { todoItem ->
+//                val itemCalendarTime = parseDateToCalendar(todoItem.date).timeInMillis
+//                val itemCalendar = parseDateToCalendar(todoItem.date)
+//                Log.d("eeeee", "$itemCalendar")
+//                if(todoItem.dataType=="img"){
+//                    events.add(EventDay(itemCalendar, R.drawable.image_icon))
+//                }else{
+//                    if(todoItem.authorID=="GPT"){
+//                        events.add(EventDay(itemCalendar, R.drawable.gpticon))
+//                    }else if(todoItem.authorID=="SummarizerDeeplearing"){
+//                        events.add(EventDay(itemCalendar, R.drawable.notify_icon))
+//                    }
+//                }
+//                withContext(Dispatchers.Main){
+//                        calendarView.setEvents(events)
+//                    }
+//                }
+//
+//            }
+
+//SummarizerDeeplearing GPT
+
+    private fun parseDateToCalendar(dateString: String): Calendar {// 먼저 "yyyy-MM-dd" 형식으로 날짜 부분만 파싱합니다.
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val date = sdf.parse(dateString.split(" ")[0]) // " "로 분리하여 날짜 부분만 사용합니다.
+
+        return Calendar.getInstance().apply {
+            time = date ?: Date() // 파싱된 날짜를 설정하거나 실패한 경우 현재 날짜를 사용합니다.
+            set(Calendar.HOUR_OF_DAY, 0) // 시간을 0으로 설정합니다.
+            set(Calendar.MINUTE, 0) // 분을 0으로 설정합니다.
+            set(Calendar.SECOND, 0) // 초를 0으로 설정합니다.
+            set(Calendar.MILLISECOND, 0) // 밀리초도 0으로 설정합니다.
+        }
+    }
+
+    //from firebase message data, import each chat room's data to localData
+    private fun setupDatabaseListener(chatId: String) {
+        iconOnCalendar(chatId)
+        databaseReferenceForEvent.addValueEventListener(object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 var todoItemList : MutableList<TodoItem> = mutableListOf()
 
@@ -69,68 +192,33 @@ class LocalCalendarActivity : AppCompatActivity() {
                         val contents = it.child("contents").getValue().toString()
                         val date = it.child("date").getValue().toString()
                         val dataType = it.child("dataType").getValue().toString()
-                        val chatRoomID = it.child("chatRoomID").getValue().toString()
-                        Log.d("ddddd", "$authorID , $dateKey")
+                        val chatRoomID = it.child("chatroomID").getValue().toString()
+                        Log.d("ddddd", "$it")
+                        Log.d("ddddd", "$chatRoomID")
+                        if((authorID == "GPT" ||authorID == "SummarizerDeeplearing") || dataType=="img"){
                         val todoItem = TodoItem(eventID = dateKey,
                                                 authorID = authorID,
                                                 contents = contents,
                                                 date = date,
                                                 dataType = dataType,
-                                                chatRoomID = chatRoomID)
+                                                chatRoomID = chatRoomID,
+                                                futureTime = null)
                         todoItemList.add(todoItem)
+                        }
                     }
                     val dao = eventDB.eventDAO().insertList(todoItemList)
+                    dao
                 }
-//                Log.d("ddddd", "$values")
-//                val chatInfo = snapshot.getValue(TodoItem::class.java)
-//                Log.d("ddddd", "$chatInfo")
-//                chatInfo?.let {
-//                    todoItemList.add(it)
-//
-//
-//                }
-
-                // This will be called every time there is a change in the 'messages' node
-//                lifecycleScope.launch (Dispatchers.IO){
-//                    for (value in values)
-//                }
-//                lifecycleScope.launch(Dispatchers.IO) {
-//                    for (value in values)
-//
-//                    value.forEach { message ->
-//                        eventDB.eventDAO().insertOrUpdate(message)
-//                    }
-//                }
-                // 'messages' now contains all the message objects
-                // Do something with your messages list
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
                 // Handle error
             }
         })
+        iconOnCalendar(chatId)
     }
 
-//    private fun setupCalendar() {
-//        lifecycleScope.launch(Dispatchers.IO) {
-//
-//            databaseReference.addListenerForSingleValueEvent(object: ValueEventListener {
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    val messages = snapshot.children.mapNotNull { it.getValue(TodoItem::class.java) }
-//                    // 'messages' now contains all the message objects
-//                    // Do something with your messages list
-//                }
-//
-//                override fun onCancelled(databaseError: DatabaseError) {
-//                    // Handle error
-//                }
-//            })
-//
-//
-//        }
-//        }
-
-        private fun setupCalendar() {
+        private fun clickCalendar(chatId: String) {
             calendarView.setOnDayClickListener(object : OnDayClickListener {
                 override fun onDayClick(eventDay: EventDay) {
                     val clickedDayCalendar = eventDay.calendar
@@ -138,37 +226,11 @@ class LocalCalendarActivity : AppCompatActivity() {
 
                     lifecycleScope.launch(Dispatchers.IO) {
                         val todoItems = getTodoItemsForDay(clickedDayCalendar)
-                        showTodoListDialog(clickedDayCalendar, todoItems)
+                        showTodoListDialog(clickedDayCalendar, todoItems, chatId)
                     }
                 }
             })
         }
-//            calendarView.setOnDayClickListener(object : OnDayClickListener {
-//                override fun onDayClick(eventDay: EventDay) {
-//                    val clickedDayCalendar = eventDay.calendar
-//                    addDotToCalendar(clickedDayCalendar)
-//                    lifecycleScope.launch {
-//                        val todoItems = getTodoItemsForDay(eventDay.calendar)
-//                        showTodoListDialog(eventDay.calendar, todoItems)
-//                    }
-//                }
-//            }
-//            )
-//        }
-//        calendarView.setOnDayClickListener(object : OnDayClickListener {
-//            override fun onDayClick(eventDay: EventDay) {
-//                val clickedDayCalendar = eventDay.calendar
-//                addDotToCalendar(clickedDayCalendar)
-//
-//                lifecycleScope.launch(Dispatchers.IO) {
-//                  val todoItems = getTodoItemsForDay(clickedDayCalendar)
-//                  withContext(Dispatchers.Main)  {
-//                      showTodoListDialog(clickedDayCalendar, todoItems)
-//                  }
-////                    showTodoListDialog(clickedDayCalendar, todoItems)
-//                }
-//
-//            }})
 
 
 
@@ -179,16 +241,92 @@ class LocalCalendarActivity : AppCompatActivity() {
     }
 
     private suspend fun getTodoItemsForDay(calendar: Calendar): MutableList<TodoItem> {
+        // Format the timeInMillis to "yyyy-MM-dd"
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val selectedDate = sdf.format(calendar.time)
 
-
-            val dao = eventDB.eventDAO()
-            var items = dao.getTodoItemsByDate(calendar.timeInMillis)
-
-
-            return items
+        val dao = eventDB.eventDAO()
+        val items = dao.getAll() // This should retrieve all items, not just by date
+        // Filter items where the date matches the selected date
+        return items.filter { todoItem ->
+            val itemDate = todoItem.date.split(" ")[0] // Assuming 'date' is in "yyyy-MM-dd hh:mm:ss" format
+            itemDate == selectedDate
+        }.toMutableList()
     }
 
-    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>) {
+    private suspend fun getTodoItems(calendar: Calendar): MutableList<TodoItem> {
+        val dao = eventDB.eventDAO()
+        var items = dao.getTodoItemsByDate(calendar.timeInMillis)
+        return items
+    }
+
+//    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val itemsForDay = getTodoItemsForDay(calendar)
+//
+//                AlertDialog.Builder(this)
+//                    .setTitle("Add To-Do")
+//                    .setView(contentsInput)
+//                    .setPositiveButton("Add") { dialog, which ->
+//                        val contents = contentsInput.text.toString()
+//                        val futureTime = futureTimeInput.text.toString()
+//                        addNewTodoItem(calendar, contents, futureTime ,chatId)
+//                    }
+//                    .setNegativeButton("Cancel", null)
+//                    .show()
+//
+//        }
+//    }
+
+
+    private fun showAddTodoDialog(calendar: Calendar, chatId: String) {
+//        val futureTimeInput = EditText(this)
+//        val contentsInput = EditText(this)
+//        val lp = LinearLayout.LayoutParams(
+//            LinearLayout.LayoutParams.MATCH_PARENT,
+//            LinearLayout.LayoutParams.MATCH_PARENT
+//        )
+//        contentsInput.layoutParams = lp
+//        futureTimeInput.layoutParams = lp
+//
+//         = getTodoItemsForDay(calendar)
+//
+//        AlertDialog.Builder(this)
+//            .setTitle("Add To-Do")
+//            .setView(getTodoItemsForDay())
+//            .setPositiveButton("Add") { dialog, which ->
+//                val contents = contentsInput.text.toString()
+//                val futureTime = futureTimeInput.text.toString()
+//                addNewTodoItem(calendar, contents, futureTime ,chatId)
+//            }
+//            .setNegativeButton("Cancel", null)
+//            .show()
+    }
+
+    private fun addNewTodoItem(calendar: Calendar, contents: String, futureTime: String?, chatId : String) {
+//        databaseReference.addChildEventListener(object = )
+        //auth
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val saveTimeNow = Date()
+        val newTodoItem = TodoItem(eventID = dateFormat.format(saveTimeNow),
+            authorID = auth.currentUser?.uid,
+            contents = contents,
+            date = dateFormat.format(saveTimeNow),
+            dataType = "note",
+            chatRoomID = chatId,
+            futureTime = futureTime)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val dao = eventDB.eventDAO()
+            dao.insert(newTodoItem)
+            withContext(Dispatchers.Main){
+                Toast.makeText(this@LocalCalendarActivity, "Added Schedule", Toast.LENGTH_SHORT).show()
+            }
+            clickCalendar(chatId)
+        }
+
+    }
+
+    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val itemsForDay = eventDB.eventDAO().getTodoItemsByDate(calendar.timeInMillis)
             val formattedItems = itemsForDay.map { todoItem ->
@@ -204,75 +342,13 @@ class LocalCalendarActivity : AppCompatActivity() {
                         // Handle item click
                     }
                     .setPositiveButton("Add") { dialog, which ->
-                        showAddTodoDialog(calendar)
+                        showAddTodoDialog(calendar, chatId)
                     }
                     .setNegativeButton("Close", null)
                     .show()
             }
-//        val items = todoItems.map{it}.toTypedArray()
-//        val calendar = Calendar.getInstance().apply {
-//            timeInMillis = todoItem.date
-//        }
-//        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-//        val dateString = dateFormat.format(calendar.time)
-//
-//        val message = "Description: ${todoItem.description}\nDate: $dateString"
-//
-//        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//        val dateOnly = dateFormat.format(calendar.time)
-//
-//        AlertDialog.Builder(this)
-//            .setTitle("${dateOnly}")
-//            .setItems(items) { todoItems, which ->
-//                todoItems.forEach()
-//            }
-//            .setPositiveButton("Add") { dialog, which ->
-//                // Handle adding a new to-do item
-//                showAddTodoDialog(calendar)
-//            }
-//            .setNegativeButton("Close", null)
-//            .show()
+
         }
     }
-
-    private fun showAddTodoDialog(calendar: Calendar) {
-        val input = EditText(this)
-        val lp = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        )
-        input.layoutParams = lp
-
-        AlertDialog.Builder(this)
-            .setTitle("Add To-Do")
-            .setView(input)
-            .setPositiveButton("Add") { dialog, which ->
-                val contents = input.text.toString()
-                addNewTodoItem(calendar, contents)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun addNewTodoItem(calendar: Calendar, contents: String) {
-//        databaseReference.addChildEventListener(object = )
-        //auth
-        val newTodoItem = TodoItem(eventID = calendar.timeInMillis.toString(),
-            authorID = auth.currentUser?.uid,
-            contents = contents,
-            date = calendar.timeInMillis.toString(),
-            dataType = "note",
-            chatRoomID = "roomExampleFirst")
-        lifecycleScope.launch(Dispatchers.IO) {
-            val dao = eventDB.eventDAO()
-            dao.insert(newTodoItem)
-            withContext(Dispatchers.Main){
-                Toast.makeText(this@LocalCalendarActivity, "Added Schedule", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    }
-
-
 
 }

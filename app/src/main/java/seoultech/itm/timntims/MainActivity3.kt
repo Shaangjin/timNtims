@@ -1,8 +1,6 @@
 package seoultech.itm.timntims
 
 
-import java.text.SimpleDateFormat
-import java.util.*
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -18,7 +16,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -42,6 +39,8 @@ import seoultech.itm.timntims.model.MessageOnFirebase
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 
@@ -175,9 +174,14 @@ class MainActivity3 : AppCompatActivity() {
 
         binding.btnsendcalendar.setOnClickListener {
             // Create the intent to start MainActivity4
-            val intent = Intent(this, LocalCalendarActivity::class.java)
+//            val intent = Intent(this, LocalCalendarActivity::class.java)
+            val intent = Intent(this, LocalCalendarActivity::class.java).apply {
+                putExtra("chatId", chatId)
+                Log.d("ddddd", "$chatId in chatroom")
+            }
+            startActivity(intent)
             // Start MainActivity4 and expect a result back
-            startForResult.launch(intent)
+
         }
 
         // Send button click listener

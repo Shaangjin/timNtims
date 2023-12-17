@@ -5,15 +5,14 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 
 
 @Dao
 interface EventDAO {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(todoItem: TodoItem)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertList(todoItemList : MutableList<TodoItem>)
 
     @Insert
@@ -28,8 +27,9 @@ interface EventDAO {
     @Query("SELECT * FROM EventLog")
     fun getAll(): MutableList<TodoItem>
 
-    @Update
-    fun updateEvent(todoItem : TodoItem)
+//    @Query("SELECT * FROM EventLog WHERE chatRoomID = :chatRoomID")
+//    fun updateEvent(todoItem : TodoItem)
+
 
     @Query("SELECT * FROM EventLog WHERE Date = :date")
     fun getTodoItemsByDate(date: Long): MutableList<TodoItem>
