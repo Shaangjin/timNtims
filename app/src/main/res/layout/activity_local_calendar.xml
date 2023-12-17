@@ -13,6 +13,7 @@
         android:layout_marginTop="40dp"
         android:visibility="visible"
         app:eventsEnabled="true"
+        app:headerColor="@color/colorPrimary"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
