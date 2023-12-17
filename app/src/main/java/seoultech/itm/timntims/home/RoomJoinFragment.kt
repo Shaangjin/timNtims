@@ -129,13 +129,13 @@ class RoomJoinFragment : Fragment() {
                             databaseReference.child("chat_members/$roomId/$currentUserID").setValue(true).await()
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(requireContext(), "Successfully Join Tim [$roomId]!", Toast.LENGTH_SHORT).show()
+                                listener?.onRoomAdded()
                             }
                         }
                     } else {
                         // 채팅방이 존재하지 않는 경우
                         withContext(Dispatchers.Main) {
                             Toast.makeText(requireContext(), "Please put an exact chat room code.", Toast.LENGTH_SHORT).show()
-                            listener?.onRoomAdded()
                         }
                     }
                 } catch (e: Exception) {
@@ -146,6 +146,7 @@ class RoomJoinFragment : Fragment() {
                 }
             }
 
+            editRoomName.text.clear()
             editCode.text.clear()
 
         }
