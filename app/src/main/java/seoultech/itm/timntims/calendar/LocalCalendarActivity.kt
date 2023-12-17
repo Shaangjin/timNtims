@@ -7,6 +7,8 @@ package seoultech.itm.timntims.calendar
 import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -128,43 +130,6 @@ class LocalCalendarActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
-
-//        var todoListByChatID : MutableList<TodoItem> = mutableListOf()
-//        lifecycleScope.launch(Dispatchers.IO) {
-//            val dao = eventDB.eventDAO().getAll()
-//            dao.forEach{
-//                if(it.chatRoomID == chatId){
-//                    todoListByChatID.add(it)
-//                }
-//            }
-//            Log.d("eeeee", "$todoListByChatID")
-//            val events: MutableList<EventDay> = ArrayList()
-//            todoListByChatID.forEach { todoItem ->
-//                val itemCalendarTime = parseDateToCalendar(todoItem.date).timeInMillis
-//                val itemCalendar = parseDateToCalendar(todoItem.date)
-//                Log.d("eeeee", "$itemCalendar")
-//                if(todoItem.dataType=="img"){
-//                    events.add(EventDay(itemCalendar, R.drawable.image_icon))
-//                }else{
-//                    if(todoItem.authorID=="GPT"){
-//                        events.add(EventDay(itemCalendar, R.drawable.gpticon))
-//                    }else if(todoItem.authorID=="SummarizerDeeplearing"){
-//                        events.add(EventDay(itemCalendar, R.drawable.notify_icon))
-//                    }
-//                }
-//                withContext(Dispatchers.Main){
-//                        calendarView.setEvents(events)
-//                    }
-//                }
-//
-//            }
-
-//SummarizerDeeplearing GPT
-
     private fun parseDateToCalendar(dateString: String): Calendar {// 먼저 "yyyy-MM-dd" 형식으로 날짜 부분만 파싱합니다.
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val date = sdf.parse(dateString.split(" ")[0]) // " "로 분리하여 날짜 부분만 사용합니다.
@@ -217,15 +182,15 @@ class LocalCalendarActivity : AppCompatActivity() {
         })
         iconOnCalendar(chatId)
     }
-
+        //it respond to click each day on calendar
         private fun clickCalendar(chatId: String) {
             calendarView.setOnDayClickListener(object : OnDayClickListener {
                 override fun onDayClick(eventDay: EventDay) {
                     val clickedDayCalendar = eventDay.calendar
-                    addDotToCalendar(clickedDayCalendar)
 
                     lifecycleScope.launch(Dispatchers.IO) {
                         val todoItems = getTodoItemsForDay(clickedDayCalendar)
+                        Log.d("ggggg", "clickCalendar $todoItems")
                         showTodoListDialog(clickedDayCalendar, todoItems, chatId)
                     }
                 }
@@ -244,14 +209,17 @@ class LocalCalendarActivity : AppCompatActivity() {
         // Format the timeInMillis to "yyyy-MM-dd"
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val selectedDate = sdf.format(calendar.time)
-
         val dao = eventDB.eventDAO()
         val items = dao.getAll() // This should retrieve all items, not just by date
         // Filter items where the date matches the selected date
-        return items.filter { todoItem ->
-            val itemDate = todoItem.date.split(" ")[0] // Assuming 'date' is in "yyyy-MM-dd hh:mm:ss" format
+        Log.d("fffff", "${items.toString()}")
+        val list = items.filter { todoItem ->
+            val itemDate = todoItem.date.split(" ")[0]
+            Log.d("fffff", "$itemDate")// Assuming 'date' is in "yyyy-MM-dd hh:mm:ss" format
             itemDate == selectedDate
         }.toMutableList()
+        Log.d("fffff", "return value $list")
+        return list
     }
 
     private suspend fun getTodoItems(calendar: Calendar): MutableList<TodoItem> {
@@ -326,29 +294,149 @@ class LocalCalendarActivity : AppCompatActivity() {
 
     }
 
-    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val itemsForDay = eventDB.eventDAO().getTodoItemsByDate(calendar.timeInMillis)
-            val formattedItems = itemsForDay.map { todoItem ->
-                val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-                "Contents: ${todoItem.contents}\nType: ${todoItem.dataType}\nTime: ${timeFormat.format(
-                    Date(todoItem.date)
-                )}"
-            }.toTypedArray()
-            withContext(Dispatchers.Main) {
-                AlertDialog.Builder(this@LocalCalendarActivity)
-                    .setTitle("Schedule for ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)}")
-                    .setItems(formattedItems) { dialog, which ->
-                        // Handle item click
-                    }
+//    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val itemsForDay = eventDB.eventDAO().getTodoItemsByDate(calendar.timeInMillis)
+//            Log.d("ggggg", "$itemsForDay")
+//            val formattedItems = itemsForDay.map { todoItem ->
+//                val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+//                "Contents: ${todoItem.contents}\nType: ${todoItem.dataType}\nTime: ${timeFormat.format(
+//                    Date(todoItem.date)
+//                )}"
+//            }.toTypedArray()
+//            withContext(Dispatchers.Main) {
+//                AlertDialog.Builder(this@LocalCalendarActivity)
+//                    .setTitle("Schedule for ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)}")
+//                    .setItems(formattedItems) { dialog, which ->
+//                        // Handle item click
+//                    }
+//                    .setPositiveButton("Add") { dialog, which ->
+//                        showAddTodoDialog(calendar, chatId)
+//                    }
+//                    .setNegativeButton("Close", null)
+//                    .show()
+//            }
+//
+//        }
+//    }
+
+
+private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        Log.d("ggggg", "ongoing 325")
+        val formattedItems = todoItems.map { todoItem ->
+            Log.d("ggggg", "ongoing 327")
+//            val timeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            Log.d("ggggg", "ongoing 329")
+            "Contents: ${todoItem.contents}\nType: ${todoItem.dataType}\nTime: ${todoItem.date}"
+            Log.d("ggggg", "ongoing 331")
+        }
+
+        withContext(Dispatchers.Main) {
+            val listView = ListView(this@LocalCalendarActivity)
+            val adapter = ArrayAdapter(this@LocalCalendarActivity, android.R.layout.simple_list_item_1, formattedItems)
+            Log.d("hhhhh", "${formattedItems.toString()}")
+            listView.adapter = adapter
+
+            listView.setOnItemClickListener { parent, view, position, id ->
+                // 여기에 각 항목 클릭 시 수행할 동작을 구현합니다.
+                val selectedItem = todoItems[position]
+                Toast.makeText(this@LocalCalendarActivity, "Selected: ${selectedItem.contents}", Toast.LENGTH_SHORT).show()}
+
+                val dialog = AlertDialog.Builder(this@LocalCalendarActivity)
+                    .setTitle("${SimpleDateFormat("MM-dd", Locale.getDefault()).format(calendar.time)}")
+                    .setView(listView)
                     .setPositiveButton("Add") { dialog, which ->
                         showAddTodoDialog(calendar, chatId)
                     }
                     .setNegativeButton("Close", null)
-                    .show()
+                    .create()
+
+                dialog.show()
             }
+
 
         }
     }
+
+//    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val formattedItems = todoItems.map { todoItem ->
+//                "Contents: ${todoItem.contents}\nType: ${todoItem.dataType}\nTime: ${todoItem.date}"
+//            }
+//
+//            withContext(Dispatchers.Main) {
+//                val inflater = layoutInflater
+//                val dialogView = inflater.inflate(R.layout.day_dialog, null)
+//
+//                val listView = dialogView.findViewById<ListView>(R.id.todoListView)
+//                val adapter = ArrayAdapter(this@LocalCalendarActivity, android.R.layout.simple_list_item_1, formattedItems)
+//                listView.adapter = adapter
+//
+//                listView.setOnItemClickListener { _, _, position, _ ->
+//                    val selectedItem = todoItems[position]
+//                    Toast.makeText(this@LocalCalendarActivity, "Selected: ${selectedItem.contents}", Toast.LENGTH_SHORT).show()
+//                }
+//
+//                val dialog = AlertDialog.Builder(this@LocalCalendarActivity)
+//                    .setTitle("${SimpleDateFormat("MM-dd", Locale.getDefault()).format(calendar.time)}")
+//                    .setView(dialogView)
+//                    .setPositiveButton("Add") { _, _ ->
+//                        showAddTodoDialog(calendar, chatId)
+//                    }
+//                    .setNegativeButton("Close", null)
+//                    .create()
+//
+//                dialog.show()
+//            }
+//        }
+//    }
+
+
+//    private fun showTodoListDialog(calendar: Calendar, todoItems: MutableList<TodoItem>, chatId: String) {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val formattedItems = todoItems.map { todoItem ->
+//                val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+//                "Contents: ${todoItem.contents}\nType: ${todoItem.dataType}\nTime: ${todoItem.date}"
+//            }
+//
+//            withContext(Dispatchers.Main) {
+//                val dialogView = LayoutInflater.from(this@LocalCalendarActivity).inflate(R.layout.day_dialog, null)
+//                val listView = ListView(this@LocalCalendarActivity)
+//                val adapter = ArrayAdapter(this@LocalCalendarActivity, android.R.layout.simple_list_item_1, formattedItems)
+//                listView.adapter = adapter
+//
+//                listView.setOnItemClickListener { _, _, position, _ ->
+//                    val selectedItem = todoItems[position]
+//                    Toast.makeText(this@LocalCalendarActivity, "Selected: ${selectedItem.contents}", Toast.LENGTH_SHORT).show()
+//                }
+//
+//                // Set custom buttons
+//                val addButton = dialogView.findViewById<Button>(R.id.dialog_add_button)
+//                val closeButton = dialogView.findViewById<Button>(R.id.dialog_close_button)
+//
+//                addButton.setOnClickListener {
+//                    showAddTodoDialog(calendar, chatId)
+//                }
+//
+//                closeButton.setOnClickListener {
+//                    null
+//                }
+//
+//                val dialog = AlertDialog.Builder(this@LocalCalendarActivity)
+//                    .setTitle("Schedule for ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)}")
+//                    .setView(dialogView)
+//                    .create()
+//
+//                dialog.show()
+//            }
+//        }
+//    }
+
+
+
+
+
 
 }
