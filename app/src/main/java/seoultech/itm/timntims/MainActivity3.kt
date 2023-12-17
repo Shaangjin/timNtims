@@ -82,14 +82,43 @@ class MainActivity3 : AppCompatActivity() {
 //    }
 
     val auth = Firebase.auth
-
     val currentUserID = auth.currentUser?.uid
+    private var userFirstName: String? = null
 
+    private fun loadUserFirstName(callback: (String) -> Unit) {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            val firstNameRef = databaseReference.child("users").child(userId).child("firstName")
+            firstNameRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val name = dataSnapshot.getValue(String::class.java).toString()
+                        callback(name) // 콜백으로 이름 전달
+                    } else {
+                        Log.d("ITM", "User first name not found")
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.d("ITM", "Error loading user first name: ${databaseError.message}")
+                }
+            })
+        } else {
+            Log.d("ITM", "User ID is null")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        loadUserFirstName { name ->
+            // 이 콜백 내에서 userFirstName 사용
+            userFirstName = name
+            // 예: UI 업데이트 또는 다른 로직 실행
+            Log.d("ITM", "User first name is: $userFirstName")
+        }
 
         val chatId = intent.getStringExtra("chatId") ?: "0000" // Replace 'defaultRoomId' with a default value
 
@@ -103,7 +132,7 @@ class MainActivity3 : AppCompatActivity() {
                     //addResponse(message)
 
                     val currentTimeInMillis = getCurrentTimeString()
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"text", chatId,""))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("GPT",message,currentTimeInMillis,"text", chatId,"","Secretary"))
                 }
             }
         }
@@ -129,16 +158,16 @@ class MainActivity3 : AppCompatActivity() {
                         message?.let {
                             it.contents?.let { contents ->
                                 if (it.authorID != currentUserID && it.dataType=="text"){
-                                    addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
+                                    addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED,it.authorName)
                                 }else if(it.authorID == currentUserID && it.dataType=="text"){
-                                    addToChat(contents, ChatItem.TYPE_MESSAGE_SENT)
+                                    addToChat(contents, ChatItem.TYPE_MESSAGE_SENT,it.authorName)
                                 }else if(it.authorID == currentUserID && it.dataType=="img"){
-                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT))
+                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT,it.authorName))
                                     binding.recyclerView.adapter?.notifyDataSetChanged()
                                     binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
                                     //imageClassification(imageUri)
                                 }else if(it.authorID != currentUserID && it.dataType=="img"){
-                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED))
+                                    messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED,it.authorName))
                                     binding.recyclerView.adapter?.notifyDataSetChanged()
                                     binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
                                     //imageClassification(imageUri)
@@ -200,7 +229,7 @@ class MainActivity3 : AppCompatActivity() {
 
         binding.share.setOnClickListener{
             val currentTimeInMillis = getCurrentTimeString()
-            databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,imgName,currentTimeInMillis,"img", chatId,className))
+            databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,imgName,currentTimeInMillis,"img", chatId,className, userFirstName))
             //messageList.add(ImageItem(imageUri, ChatItem.TYPE_IMAGE_SENT))
             //binding.recyclerView.adapter?.notifyDataSetChanged()
             //binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
@@ -229,7 +258,7 @@ class MainActivity3 : AppCompatActivity() {
                 else{
 
                     val currentTimeInMillis = getCurrentTimeString()
-                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId,""))
+                    databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase(currentUserID,SendMessage,currentTimeInMillis,"text", chatId,"", userFirstName))
                 }
 
 
@@ -258,17 +287,17 @@ class MainActivity3 : AppCompatActivity() {
         // addResponse(summary)
 
         val currentTimeInMillis = getCurrentTimeString()
-        databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"text", chatId,""))
+        databaseReference.child("messages/$chatId/${currentTimeInMillis}/").setValue(MessageOnFirebase("SummarizerDeeplearing",summary,currentTimeInMillis,"text", chatId,"", "Secretary"))
     }
-    private fun addToChat(message: String, sentBy: Int) {
+    private fun addToChat(message: String, sentBy: Int,senderName: String?) {
         // Add to chat and update UI on the main thread
         runOnUiThread {
 
             if(sentBy ==ChatItem.TYPE_MESSAGE_SENT){
-                messageList.add(MessageItem(message, sentBy))
+                messageList.add(MessageItem(message, sentBy, senderName))
 
             }else if(sentBy ==ChatItem.TYPE_MESSAGE_RECEIVED){
-                messageList.add(MessageItem(message, sentBy))
+                messageList.add(MessageItem(message, sentBy, senderName))
 
             }
 
@@ -290,18 +319,18 @@ class MainActivity3 : AppCompatActivity() {
                             message?.let {
                                 it.contents?.let { contents ->
                                     if (it.authorID != currentUserID && it.dataType == "text"){
-                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED)
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_RECEIVED,"Secretary")
                                     }else if (it.authorID == currentUserID && it.dataType =="text"){
-                                        addToChat(contents, ChatItem.TYPE_MESSAGE_SENT)
+                                        addToChat(contents, ChatItem.TYPE_MESSAGE_SENT,it.authorName)
                                     }else if(it.authorID == currentUserID && it.dataType=="img"){
-                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT))
+                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_SENT,it.authorName))
                                         binding.recyclerView.adapter?.notifyDataSetChanged()
                                         binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
 
                                         Toast.makeText(this@MainActivity3, it.addMaterial, Toast.LENGTH_SHORT).show()
 
                                     }else if(it.authorID != currentUserID && it.dataType=="img"){
-                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED))
+                                        messageList.add(ImageItem(it.contents, ChatItem.TYPE_IMAGE_RECEIVED,it.authorName))
                                         binding.recyclerView.adapter?.notifyDataSetChanged()
                                         binding.recyclerView.smoothScrollToPosition(messageList.size - 1)
                                         Toast.makeText(this@MainActivity3, it.addMaterial, Toast.LENGTH_SHORT).show()
@@ -366,7 +395,7 @@ class MainActivity3 : AppCompatActivity() {
     private fun addResponse(response: String) {
         // Add response to chat from gpt response
         //messageList.removeAt(messageList.size - 1) // Remove the loading message
-        addToChat(response, ChatItem.TYPE_MESSAGE_RECEIVED)
+        addToChat(response, ChatItem.TYPE_MESSAGE_RECEIVED,"Secretary")
     }
 
     private fun openGalleryForImage() {

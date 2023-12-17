@@ -90,6 +90,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 messageHolder.right_chat_view.setVisibility(View.VISIBLE);
 
                 MessageItem message = (MessageItem) chatItem;
+
+                messageHolder.right_first_name.setText(message.getSenderName());
                 messageHolder.right_chat_tv.setText((CharSequence) message.getMessage());
 
                 break;
@@ -100,6 +102,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 messageHolder2.left_chat_view.setVisibility(View.VISIBLE);
 
                 MessageItem message2 = (MessageItem) chatItem;
+
+                messageHolder2.left_first_name.setText(message2.getSenderName());
                 messageHolder2.left_chat_tv.setText((CharSequence) message2.getMessage());
 
                 break;
@@ -112,6 +116,9 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                 ImageItem image = (ImageItem) chatItem;
 
+                imageHolder.right_first_name_image.setText(image.getSenderName());
+
+                //TODO: sd
                 StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("photos/"+image.getUri());
 
                 File localFile = null;
@@ -150,6 +157,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 imageHolder2.left_image_view.setVisibility(View.VISIBLE);
 
                 ImageItem image2 = (ImageItem) chatItem;
+
+                imageHolder2.left_first_name_image.setText(image2.getSenderName());
 
                 StorageReference storageReference2 = FirebaseStorage.getInstance().getReference().child("photos/"+image2.getUri());
 
@@ -191,12 +200,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         // Define your TextViews or other UI elements here
         LinearLayout left_chat_view, right_chat_view;
-        TextView left_chat_tv, right_chat_tv;
+        TextView left_first_name, right_first_name, left_chat_tv, right_chat_tv;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             left_chat_view = itemView.findViewById(R.id.left_chat_view);
             right_chat_view = itemView.findViewById(R.id.right_chat_view);
+            left_first_name = itemView.findViewById(R.id.left_first_name);
+            right_first_name = itemView.findViewById(R.id.right_first_name);
             left_chat_tv = itemView.findViewById(R.id.left_chat_tv);
             right_chat_tv = itemView.findViewById(R.id.right_chat_tv);
         }
@@ -210,6 +221,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // Define your ImageView here
         LinearLayout left_image_view, right_image_view;
         ImageView left_image_item, right_image_item;
+        TextView left_first_name_image, right_first_name_image;
+
         public ImageViewHolder(View itemView) {
             super(itemView);
             // Initialize your ImageView here
@@ -217,6 +230,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             right_image_view = itemView.findViewById(R.id.right_image_view);
             left_image_item = itemView.findViewById(R.id.left_image_item);
             right_image_item = itemView.findViewById(R.id.right_image_item);
+            left_first_name_image = itemView.findViewById(R.id.left_first_name_image);
+            right_first_name_image = itemView.findViewById(R.id.right_first_name_image);
         }
 
         public void bind(ImageItem imageItem) {

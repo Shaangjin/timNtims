@@ -46,10 +46,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         if(message.getSentBy().equals(Message.SENT_BY_ME)){
             holder.left_chat_view.setVisibility(View.GONE);
             holder.right_chat_view.setVisibility(View.VISIBLE);
+            holder.right_first_name.setText("ME");
             holder.right_chat_tv.setText(message.getMessage());
         } else {
             holder.right_chat_view.setVisibility(View.GONE);
             holder.left_chat_view.setVisibility(View.VISIBLE);
+            holder.left_first_name.setText("ChatGPT");
             holder.left_chat_tv.setText(message.getMessage());
         }
     }
@@ -61,12 +63,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         LinearLayout left_chat_view, right_chat_view;
-        TextView left_chat_tv, right_chat_tv;
+        TextView left_first_name, right_first_name, left_chat_tv, right_chat_tv;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             left_chat_view = itemView.findViewById(R.id.left_chat_view);
             right_chat_view = itemView.findViewById(R.id.right_chat_view);
+
+            left_first_name = itemView.findViewById(R.id.left_first_name);
+            right_first_name = itemView.findViewById(R.id.right_first_name);
+
             left_chat_tv = itemView.findViewById(R.id.left_chat_tv);
             right_chat_tv = itemView.findViewById(R.id.right_chat_tv);
         }

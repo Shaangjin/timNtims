@@ -14,15 +14,17 @@ internal class MessageOnFirebase {
         private set
     var addMaterial: String? = null
         private set
-
+    var authorName: String? = null
+        private set
 
     private constructor()
-    constructor(author: String?, text: String?, date:String?, dataType:String?, roomID:String?, addMaterial:String) {
+    constructor(author: String?, text: String?, date:String?, dataType:String?, roomID:String?, addMaterial:String, authorName:String?) {
         this.authorID = author
         this.contents = text
         this.date = date
         this.dataType = dataType
         this.chatroomID = roomID
         this.addMaterial = addMaterial
+        this.authorName = authorName
     }
 }

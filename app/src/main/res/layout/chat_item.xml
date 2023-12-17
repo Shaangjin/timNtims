@@ -5,42 +5,59 @@
     android:padding="8dp">
 
     <LinearLayout
+        android:id="@+id/left_chat_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/left_chat_view"
+        android:layout_marginEnd="80dp"
         android:background="@drawable/rounded_corner"
         android:backgroundTint="@color/purple_200"
-        android:layout_marginEnd="80dp"
+        android:orientation="vertical"
         android:padding="8dp">
 
         <TextView
+            android:id="@+id/left_first_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/left_chat_tv"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:text="Hello World"/>
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="TextView" />
 
+        <TextView
+            android:id="@+id/left_chat_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello World"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/right_chat_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/right_chat_view"
+        android:layout_alignParentEnd="true"
         android:background="@drawable/rounded_corner"
         android:backgroundTint="@color/teal_200"
-        android:layout_marginStart="80dp"
-        android:layout_alignParentEnd="true"
+        android:orientation="vertical"
         android:padding="8dp">
 
         <TextView
+            android:id="@+id/right_first_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/right_chat_tv"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:text="Hello World"/>
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="TextView" />
 
+        <TextView
+            android:id="@+id/right_chat_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello World"
+            android:background="@drawable/rounded_corner"
+            android:backgroundTint="@color/teal_200"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -6,9 +6,12 @@ public class ImageItem extends ChatItem {
     private String imgName;
     private int Sentby;
 
-    public ImageItem(String imgName, int Sentby) {
+    private String senderName;
+
+    public ImageItem(String imgName, int Sentby, String senderName) {
         this.imgName = imgName;
         this.Sentby = Sentby;
+        this.senderName = senderName;
     }
     public ImageItem(int Sentby) {
 
@@ -22,7 +25,7 @@ public class ImageItem extends ChatItem {
     public int getSentBy() {
         return this.Sentby;
     }
-
+    public String getSenderName(){return this.senderName;}
     @Override
     public int getType() {
         return getSentBy();
