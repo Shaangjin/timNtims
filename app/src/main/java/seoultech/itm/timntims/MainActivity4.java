@@ -46,7 +46,7 @@ public class MainActivity4 extends AppCompatActivity implements MessageAdapter.O
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
 
-    private static final String MY_SECRET_KEY = "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";
+    private static final String MY_SECRET_KEY = "//omit key for transforming to public";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
